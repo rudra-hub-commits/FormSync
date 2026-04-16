@@ -91,16 +91,7 @@ body::after{content:'';position:fixed;width:500px;height:500px;top:-180px;right:
   text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
 .pinfo-title span{width:20px;height:20px;border-radius:5px;background:rgba(129,140,248,.12);
   display:flex;align-items:center;justify-content:center;font-size:11px}
-.pinfo-title .pinfo-add-btn{margin-left:auto;display:flex;align-items:center;gap:5px;
-  background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.28);border-radius:6px;
-  padding:4px 11px;font-size:11px;font-weight:700;color:var(--indigo);cursor:pointer;
-  font-family:'Outfit',sans-serif;transition:all .15s;text-transform:none;letter-spacing:0}
-.pinfo-title .pinfo-add-btn:hover{background:rgba(129,140,248,.2);border-color:rgba(129,140,248,.5)}
-.pinfo-rows{display:flex;flex-direction:column;gap:10px}
-.pinfo-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;
-  background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:var(--r-sm);
-  padding:10px 12px;position:relative;transition:border-color .2s}
-.pinfo-row:only-child .pinfo-remove-btn{display:none}
+.pinfo-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end}
 .pinfo-field{display:flex;flex-direction:column;gap:5px}
 .pinfo-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em}
 .pinfo-inp{
@@ -111,19 +102,18 @@ body::after{content:'';position:fixed;width:500px;height:500px;top:-180px;right:
 .pinfo-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
 .pinfo-inp::placeholder{color:var(--text3);font-weight:400}
 .pinfo-inp:disabled{color:var(--text2);cursor:default;opacity:.8}
-.pinfo-remove-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--red-bd);
-  background:var(--red-lt);color:var(--red);cursor:pointer;font-size:14px;display:flex;
-  align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;align-self:end;margin-bottom:1px}
-.pinfo-remove-btn:hover{background:rgba(248,113,113,.25)}
-.pinfo-preview-all{
+.pinfo-date{display:flex;align-items:center;gap:8px}
+.pinfo-date-sep{font-size:13px;color:var(--text3);font-weight:600;flex-shrink:0}
+.pinfo-term-row{grid-column:2/-1;display:flex;gap:8px;align-items:end}
+.pinfo-term-row .pinfo-field{flex:1}
+.pinfo-preview{
   margin-top:.875rem;padding:9px 14px;
   background:rgba(129,140,248,.06);border:1px solid rgba(129,140,248,.14);
   border-radius:var(--r-xs);font-size:12px;color:var(--text2);
-  font-family:'JetBrains Mono',monospace;display:none;line-height:1.8;
+  font-family:'JetBrains Mono',monospace;display:none;
 }
-.pinfo-preview-all strong{color:var(--text);font-weight:600}
-.pinfo-preview-all .pi-line+.pi-line{border-top:1px solid rgba(255,255,255,.05);margin-top:5px;padding-top:5px}
-@media(max-width:700px){.pinfo-row{grid-template-columns:1fr}.pinfo-remove-btn{display:none}}
+.pinfo-preview strong{color:var(--text);font-weight:600}
+@media(max-width:700px){.pinfo-fields{grid-template-columns:1fr}.pinfo-term-row{grid-column:1}}
 
 .chead{display:flex;align-items:flex-start;gap:14px;margin-bottom:1.25rem;margin-top:4px}
 .cicon{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;
@@ -400,6 +390,7 @@ textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba
 .tag-ux{background:rgba(129,140,248,.13);color:var(--indigo)}
 .tag-data{background:rgba(251,191,36,.1);color:var(--amber)}
 .tag-smart{background:rgba(45,212,191,.1);color:var(--teal)}
+.idea-card:hover{border-color:rgba(129,140,248,.25);background:rgba(129,140,248,.06);transition:all .2s}
 .tag-done{background:rgba(52,211,153,.15);color:var(--green);opacity:.8}
 .idea-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
 .idea-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
@@ -422,14 +413,168 @@ textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba
 @keyframes tin{from{opacity:0;transform:translateX(22px) scale(.92)}to{opacity:1;transform:translateX(0) scale(1)}}
 @keyframes tout{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(22px)}}
 
-/* ════ LEGACY MODE ═══════════════════════════ */
-body.legacy{--bg:#f0f4f8;--glass:rgba(255,255,255,.88);--glass2:#ffffff;
-  --border:#e2e8f0;--border2:#cbd5e1;--text:#1e293b;--text2:#475569;--text3:#94a3b8;background:var(--bg)}
-body.legacy::before,body.legacy::after{display:none}
-body.legacy .hdr-text h1{background:linear-gradient(135deg,#1e293b,#4f46e5);-webkit-background-clip:text}
-body.legacy textarea,body.legacy .srch-inp,body.legacy .note-inp{background:#f8fafc;color:#1e293b}
-body.legacy .disc-inp{background:#fffbeb;color:#92400e}
-body.legacy .form-row:hover{background:rgba(0,0,0,.02)}.body.legacy .sec-hd:hover{background:rgba(0,0,0,.02)}
+/* ════ POLICY INFO CARD ══════════════════════ */
+.pinfo-card{
+  background:var(--glass2);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);border-radius:var(--r);
+  padding:1.25rem 1.75rem;margin-bottom:1.25rem;
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.pinfo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,.5),rgba(45,212,191,.3),transparent)}
+.pinfo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.pinfo-title{font-size:12px;font-weight:800;color:var(--indigo);letter-spacing:.07em;
+  text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.btn-add-policy{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);
+  border-radius:6px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;
+  color:var(--indigo);font-family:'Outfit',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-add-policy:hover{background:rgba(129,140,248,.2);border-color:var(--indigo)}
+.policy-entries{display:flex;flex-direction:column;gap:10px}
+.policy-entry{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem 1rem;position:relative}
+.policy-entry-fields{display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:10px;align-items:end}
+.pinfo-field{display:flex;flex-direction:column;gap:5px}
+.pinfo-label{font-size:11px;font-weight:800;color:var(--text2);letter-spacing:.04em}
+.pinfo-inp{
+  background:rgba(0,0,0,.28);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:9px 13px;font-size:13px;font-weight:600;color:var(--text);
+  font-family:'JetBrains Mono',monospace;transition:border-color .2s,box-shadow .2s;width:100%;
+}
+.pinfo-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.pinfo-inp::placeholder{color:var(--text3);font-weight:400;font-family:'Outfit',sans-serif;font-size:12px}
+.btn-rm-entry{background:transparent;border:1px solid rgba(248,113,113,.2);border-radius:6px;
+  width:28px;height:38px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;cursor:pointer;color:rgba(248,113,113,.4);transition:all .15s;align-self:end;flex-shrink:0}
+.btn-rm-entry:hover{background:rgba(248,113,113,.1);color:var(--red);border-color:var(--red)}
+.pinfo-previews{display:flex;flex-direction:column;gap:5px;margin-top:.75rem}
+.pinfo-preview{
+  padding:9px 14px;background:rgba(0,0,0,.18);
+  border:1px solid var(--border);border-radius:var(--r-xs);
+  font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;
+  display:none;cursor:pointer;transition:background .15s;user-select:all;
+}
+.pinfo-preview:hover{background:rgba(129,140,248,.08)}
+.pinfo-preview strong{color:var(--text);font-weight:700}
+.pinfo-preview .copy-hint{font-size:10px;color:var(--indigo);margin-left:8px;opacity:.65;font-style:italic}
+
+/* ════ LIGHT MODE (default) ══════════════════════ */
+body.theme-light{
+  --bg:#f0f4f8;--glass:rgba(255,255,255,.92);--glass2:#ffffff;
+  --border:#d1d9e6;--border2:#b8c4d8;
+  --text:#0f172a;--text2:#334155;--text3:#64748b;
+  --indigo:#4f46e5;--green:#059669;--amber:#b45309;--red:#dc2626;--teal:#0f766e;
+  background:linear-gradient(135deg,#f0f4f8 0%,#e8eef6 100%);
+}
+body.theme-light::before,body.theme-light::after{display:none}
+body.theme-light .hdr{background:#fff;border-color:#d1d9e6;box-shadow:0 2px 12px rgba(15,23,42,.1)}
+body.theme-light .hdr-text h1{background:linear-gradient(135deg,#0f172a,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.theme-light .hdr-text p,body.theme-light .hdr-clock{color:#64748b}
+body.theme-light .ver-tag{background:#eff6ff;color:#4f46e5;border-color:#bfdbfe}
+body.theme-light .scirc{background:#fff;border-color:#b8c4d8;color:#64748b}
+body.theme-light .snode.active .scirc{border-color:#4f46e5;color:#4f46e5;background:#eff6ff}
+body.theme-light .snode.done .scirc{border-color:#059669;background:#059669}
+body.theme-light .sline{background:#d1d9e6}
+body.theme-light .card{background:#fff;border-color:#d1d9e6}
+body.theme-light .card.active{border-color:#a5b4fc}
+body.theme-light .cicon{background:#f1f5f9;border-color:#d1d9e6}
+body.theme-light .ctitle{color:#0f172a} body.theme-light .csub{color:#475569}
+body.theme-light .cglow{background:linear-gradient(90deg,transparent,rgba(79,70,229,.35),transparent)!important}
+body.theme-light .upload-zone,body.theme-light .pdf-zone{background:#f8fafc;border-color:#b8c4d8}
+body.theme-light .upload-zone:hover{background:#eef2ff;border-color:#4f46e5}
+body.theme-light .uz-label{color:#334155} body.theme-light .uz-hint{color:#64748b}
+body.theme-light .s2-tab{background:#f1f5f9;border-color:#d1d9e6;color:#475569}
+body.theme-light .s2-tab.active{background:#eff6ff;border-color:#a5b4fc;color:#4f46e5}
+body.theme-light textarea{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light textarea:focus{border-color:#4f46e5}
+body.theme-light textarea::placeholder{color:#94a3b8}
+body.theme-light .hint-box{background:#eff6ff;border-color:#bfdbfe;color:#3730a3}
+body.theme-light .action-bar{background:#fff;border-color:#d1d9e6}
+body.theme-light .btn-sec{background:#f1f5f9;border-color:#b8c4d8;color:#334155}
+body.theme-light .btn-sec:hover{background:#e2e8f0;color:#0f172a}
+body.theme-light .btn-sbs{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+body.theme-light .status-pill{color:#64748b}
+body.theme-light .stat{background:#fff;border-color:#d1d9e6;box-shadow:0 2px 8px rgba(15,23,42,.06)}
+body.theme-light .stat-l{color:#475569}
+body.theme-light .res-card{background:#fff;border-color:#d1d9e6}
+body.theme-light .res-search{background:#f8fafc;border-color:#d1d9e6}
+body.theme-light .srch-inp{background:#fff;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .srch-inp::placeholder{color:#94a3b8}
+body.theme-light .sec-hd{border-color:#e2e8f0}
+body.theme-light .sec-hd:hover{background:#f8fafc}
+body.theme-light .sec-sub,body.theme-light .sec-title{color:inherit}
+body.theme-light .col-hdr{background:#f8fafc;border-color:#e2e8f0}
+body.theme-light .col-hdr span{color:#64748b}
+body.theme-light .form-row{border-color:#f1f5f9}
+body.theme-light .form-row:hover{background:#fafbff}
+body.theme-light .f-num{color:#0f172a}
+body.theme-light .f-num:hover{background:rgba(79,70,229,.08)}
+body.theme-light .f-name{color:#334155} body.theme-light .f-name em{color:#94a3b8}
+body.theme-light .note-inp{background:#f8fafc;color:#0f172a;border-color:#d1d9e6}
+body.theme-light .note-inp:focus{border-color:#4f46e5;background:#fff}
+body.theme-light .note-inp::placeholder{color:#94a3b8}
+body.theme-light .note-inp.has-note{background:#ecfdf5;border-color:#6ee7b7;color:#065f46}
+body.theme-light .flag-btn{background:#f8fafc;border-color:#d1d9e6;color:#64748b}
+body.theme-light .flag-btn:hover,body.theme-light .flag-btn.flagged{border-color:#d97706;color:#b45309;background:#fffbeb}
+body.theme-light .fuzzy-hint{background:#ecfdf9;border-color:#99f6e4;color:#0f766e}
+body.theme-light .accept-btn{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+body.theme-light .rm-btn{border-color:#fecaca;color:#fca5a5}
+body.theme-light .rm-btn:hover{background:#fef2f2;border-color:#dc2626;color:#dc2626}
+body.theme-light .pinfo-card{background:#fff;border-color:#d1d9e6}
+body.theme-light .pinfo-title{color:#4f46e5}
+body.theme-light .pinfo-label{color:#1e293b;font-weight:800}
+body.theme-light .pinfo-inp{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .pinfo-inp::placeholder{color:#94a3b8}
+body.theme-light .pinfo-inp:focus{border-color:#4f46e5}
+body.theme-light .pinfo-preview{background:#f1f5f9;border-color:#d1d9e6;color:#334155}
+body.theme-light .pinfo-preview strong{color:#0f172a}
+body.theme-light .policy-entry{background:#f8fafc;border-color:#d1d9e6}
+body.theme-light .btn-add-policy{background:#eff6ff;border-color:#bfdbfe;color:#4f46e5}
+body.theme-light .disc-sec{background:#fffbeb;border-color:#fde68a}
+body.theme-light .disc-hd{background:#fef9c3;border-color:#fde68a}
+body.theme-light .disc-fn{color:#92400e} body.theme-light .disc-note{color:#475569}
+body.theme-light .disc-inp{background:#fffbeb;color:#92400e;border-color:#fde68a}
+body.theme-light .disc-inp::placeholder{color:#d97706}
+body.theme-light .disc-empty{color:#d97706}
+body.theme-light .sbs-hdr{background:#f8fafc}
+body.theme-light .sbs-row{border-color:#f1f5f9} body.theme-light .sbs-num{color:#0f172a} body.theme-light .sbs-name{color:#64748b}
+body.theme-light .fmt-pumaa{background:#eff6ff;color:#4338ca;border-color:#c7d2fe}
+body.theme-light .fmt-policy{background:#fffbeb;color:#b45309;border-color:#fde68a}
+body.theme-light .fmt-match{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
+body.theme-light .year-diff{background:#fffbeb;color:#b45309;border-color:#fde68a}
+body.theme-light .ideas-panel{background:#fff;border-color:#d1d9e6}
+body.theme-light .idea-card{background:#f8fafc;border-color:#e2e8f0}
+body.theme-light .idea-title{color:#0f172a} body.theme-light .idea-desc{color:#475569}
+body.theme-light .empty-msg{color:#94a3b8}
+body.theme-light .pbadges .pb{background:#f8fafc;border-color:#d1d9e6;color:#334155}
+body.theme-light .pbadges .pb strong{color:#0f172a}
+body.theme-light .toast{background:#fff;border-color:#d1d9e6;color:#0f172a}
+body.theme-light .alert-box{background:#fef2f2;border-color:#fecaca;color:#dc2626}
+body.theme-light .detect-note{color:#334155} body.theme-light .detect-note .ok{color:#059669}
+body.theme-light .cheat-hud{background:rgba(255,255,255,.97);color:#4f46e5;border-color:#d1d9e6}
+
+/* ════ DIM MODE ══════════════════════════════════ */
+body.theme-dim{
+  --bg:#1a1f2e;--glass:rgba(255,255,255,.055);--glass2:rgba(255,255,255,.085);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#e2e8f0;--text2:#8899aa;--text3:#4a5568;
+  --indigo:#818cf8;--indigo2:#6366f1;--indigo3:#4f46e5;
+  --green:#34d399;--green2:#059669;--amber:#fbbf24;--amber2:#d97706;--red:#f87171;--teal:#2dd4bf;
+  background:linear-gradient(135deg,#1a1f2e 0%,#1e2435 100%);
+}
+body.theme-dim .cheat-hud{background:rgba(26,31,46,.96)}
+
+/* ════ DARK MODE ══════════════════════════════════ */
+/* (default :root tokens — no extra class needed,
+   but theme-dark makes it explicit) */
+body.theme-dark{
+  --bg:#0f1117;--glass:rgba(255,255,255,.035);--glass2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#4b5e78;
+  --indigo:#818cf8;--indigo2:#6366f1;--indigo3:#4f46e5;
+  --green:#34d399;--green2:#059669;--green-lt:rgba(52,211,153,.1);--green-bd:rgba(52,211,153,.25);
+  --amber:#fbbf24;--amber2:#d97706;--amber-lt:rgba(251,191,36,.1);--amber-bd:rgba(251,191,36,.25);
+  --red:#f87171;--red-lt:rgba(248,113,113,.1);--red-bd:rgba(248,113,113,.25);
+  --teal:#2dd4bf;--teal-lt:rgba(45,212,191,.1);--teal-bd:rgba(45,212,191,.25);
+}
 
 @media print{.no-print{display:none!important}body,html{background:#fff;color:#000}
   .card,.res-card,.stat{border:1px solid #ddd!important;box-shadow:none!important;background:#fff!important}
@@ -438,7 +583,7 @@ body.legacy .form-row:hover{background:rgba(0,0,0,.02)}.body.legacy .sec-hd:hove
   .ideas-grid,.sbs-wrap.open{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
+<body class="theme-light">
 <div class="app">
 
   <!-- HEADER -->
@@ -463,16 +608,16 @@ body.legacy .form-row:hover{background:rgba(0,0,0,.02)}.body.legacy .sec-hd:hove
     <div class="snode" id="sn3"><div class="scirc" id="sc3">3</div><span class="slabel">Results</span></div>
   </div>
 
-  <!-- PREVIOUS POLICY NUMBER BLOCK -->
+  <!-- PREVIOUS POLICY NUMBER BLOCK — supports multiple entries -->
   <div class="pinfo-card no-print" id="policyInfoCard">
-    <div class="pinfo-title">
-      <span>📌</span> Previous Policy Numbers
-      <button class="pinfo-add-btn" onclick="addPolicyRow()">＋ Add Policy</button>
+    <div class="pinfo-header">
+      <div class="pinfo-title">📌 Previous Policy Number</div>
+      <button class="btn-add-policy" onclick="addPolicyEntry()">＋ Add Policy</button>
     </div>
-    <div class="pinfo-rows" id="piRows">
-      <!-- rows injected by JS -->
+    <div class="policy-entries" id="policyEntries">
+      <!-- First entry rendered by JS on load -->
     </div>
-    <div class="pinfo-preview-all" id="piPreview"></div>
+    <div class="pinfo-previews" id="piPreviews"></div>
   </div>
 
   <!-- STEP 1: PUMAA HTML -->
@@ -609,51 +754,69 @@ body.legacy .form-row:hover{background:rgba(0,0,0,.02)}.body.legacy .sec-hd:hove
     </div>
     <div class="ideas-body" id="ideasBody">
       <div class="ideas-grid">
+        <!-- BUILT highlight row -->
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Policy PDF Direct Upload</div>
+          <div class="idea-desc">Upload the policy PDF — only the Forms &amp; Endorsements block is extracted automatically.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Year-Aware Fuzzy Matching</div>
+          <div class="idea-desc">Near-matches across year versions (2024 vs 2025) detected automatically with one-click Accept.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Side-by-Side View</div>
+          <div class="idea-desc">Toggle ⇄ to see PUMAA and policy forms in two panels with colour-coded match indicators.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Auto-Suggest Discrepancy Notes</div>
+          <div class="idea-desc">Flagging a format-mismatch row pre-fills the discrepancy note with exact PUMAA vs Policy formats.</div>
+        </div>
+
+        <!-- NEW GAME-CHANGING IDEAS -->
         <div class="idea-card">
-          <span class="idea-tag tag-done">✓ Done</span>
-          <div class="idea-title">Policy PDF Direct Upload <span class="done-tag">BUILT</span></div>
-          <div class="idea-desc">Upload the policy PDF — form numbers auto-extracted. Manual paste still available as fallback.</div>
+          <span class="idea-tag tag-smart">🧠 AI</span>
+          <div class="idea-title">Smart Form Validation Engine</div>
+          <div class="idea-desc">Cross-check form combinations for known conflicts (e.g. two mutually exclusive exclusions on the same policy). Flag illogical pairings before binding — catches underwriting errors no one else catches.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-done">✓ Done</span>
-          <div class="idea-title">Auto Fuzzy Matching <span class="done-tag">BUILT</span></div>
-          <div class="idea-desc">For forms not found in PUMAA, similar PUMAA forms are shown with a match score. Click to auto-flag.</div>
+          <span class="idea-tag tag-feature">🔄 Workflow</span>
+          <div class="idea-title">Policy Version Diff</div>
+          <div class="idea-desc">Upload two policy PDFs (renewal vs prior year) and instantly see which forms were added, removed, or changed — a full line-by-line endorsement diff that takes seconds instead of 30 minutes.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-done">✓ Done</span>
-          <div class="idea-title">Side-by-Side View <span class="done-tag">BUILT</span></div>
-          <div class="idea-desc">Toggle ⇄ button to see PUMAA forms and policy forms in two panels for visual comparison.</div>
+          <span class="idea-tag tag-data">📊 Data</span>
+          <div class="idea-title">Required Forms Rule Engine</div>
+          <div class="idea-desc">Define rules per state and policy type: "HO3 in Massachusetts must always include HO 01 20." Automatically alerts if a mandatory form is missing from the policy. Eliminates E&amp;O exposure.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-done">✓ Done</span>
-          <div class="idea-title">Auto-Suggest Discrepancy Notes <span class="done-tag">BUILT</span></div>
-          <div class="idea-desc">When flag is clicked on a format-mismatch row, the discrepancy note is pre-filled automatically.</div>
+          <span class="idea-tag tag-smart">⚡ Speed</span>
+          <div class="idea-title">Batch Policy Processing</div>
+          <div class="idea-desc">Upload 10 policy PDFs at once against a single PUMAA page. Get a summary table showing all missing and extra forms across all policies — one click to review the whole book.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-data">Data</span>
-          <div class="idea-title">Historical Comparison Log</div>
-          <div class="idea-desc">Save results locally with date + policy reference. Re-open past comparisons to track changes.</div>
+          <span class="idea-tag tag-ux">🔗 Share</span>
+          <div class="idea-title">One-Click Shareable Report</div>
+          <div class="idea-desc">Generate a self-contained HTML snapshot that preserves all results, notes, flags and discrepancies. Share via email or link — the recipient sees everything exactly as you left it, no files needed.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-feature">Feature</span>
-          <div class="idea-title">Required Forms Checklist</div>
-          <div class="idea-desc">Master list of forms that must always be present for HO3, DP3 etc. Auto-alert if a required form is missing.</div>
+          <span class="idea-tag tag-feature">🕐 History</span>
+          <div class="idea-title">Comparison History &amp; Audit Log</div>
+          <div class="idea-desc">Auto-save every comparison to browser storage with timestamp and policy number. Reopen any past review, see what was flagged, what notes were added — full audit trail for compliance and E&amp;O defence.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-data">Data</span>
-          <div class="idea-title">Shareable Reports</div>
-          <div class="idea-desc">Generate a portable HTML report a colleague can open without needing the original files.</div>
+          <span class="idea-tag tag-smart">🏷 Smart</span>
+          <div class="idea-title">Form Description Normaliser</div>
+          <div class="idea-desc">When "Sanctions Suspension Clause" and "Sanctions Limitation Clause" appear on the same policy, detect that they may be duplicates or conflicting and flag for UW review. Stop silently passing bad policies.</div>
         </div>
         <div class="idea-card">
-          <span class="idea-tag tag-ux">UX</span>
-          <div class="idea-title">Keyboard Power Mode</div>
-          <div class="idea-desc">Tab through rows, press F to flag, N for note — review 50+ forms without touching the mouse.</div>
+          <span class="idea-tag tag-data">📋 Export</span>
+          <div class="idea-title">RISCO Email Draft Generator</div>
+          <div class="idea-desc">After comparison, generate a ready-to-send email to the retail agent listing missing forms, discrepancies and required follow-up — formatted, professional, copy-paste ready in one click.</div>
         </div>
-      </div>
-      <div style="margin-top:1.25rem;padding:11px 14px;background:rgba(129,140,248,.06);border:1px solid rgba(129,140,248,.14);border-radius:10px;font-size:12px;color:var(--text2);line-height:1.65">
-        💬 <strong style="color:var(--indigo)">Two questions to help prioritise next build:</strong><br>
-        1. What policy types are reviewed most — HO3, DP3, or mixed? (Helps scope the Required Forms Checklist.)<br>
-        2. Do underwriters share these reports with others, or is it personal review only? (Decides if Shared Reports is worth building next.)
       </div>
     </div>
   </div>
@@ -707,25 +870,32 @@ function showToast(msg, type='ok', ms=3500){
 })();
 
 /* ════════════════════════════════════════════════
-   GTA CHEAT — type FORMCHECK (not in inputs)
+   CHEAT CODE — type LIGHT, DARK, or Dim (not in inputs)
 ════════════════════════════════════════════════ */
-const CHEAT='FORMCHECK'; let cbuf='', ctmr=null;
+const THEMES = ['theme-light','theme-dark','theme-dim'];
+const THEME_CHEATS = { 'LIGHT':'theme-light', 'DARK':'theme-dark', 'DIM':'theme-dim' };
+const THEME_LABELS = { 'theme-light':'LIGHT mode','theme-dark':'DARK mode','theme-dim':'Dim mode' };
+const MAX_CHEAT = Math.max(...Object.keys(THEME_CHEATS).map(k=>k.length));
+let cbuf='', ctmr=null;
 const chud=document.getElementById('cheatHud');
 document.addEventListener('keydown', e=>{
   if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
   cbuf += e.key.toUpperCase();
-  if(cbuf.length>CHEAT.length) cbuf=cbuf.slice(-CHEAT.length);
-  if(CHEAT.startsWith(cbuf)&&cbuf.length>0){ chud.textContent='[ '+cbuf+' ]'; chud.classList.add('show'); }
+  if(cbuf.length > MAX_CHEAT) cbuf = cbuf.slice(-MAX_CHEAT);
+  const match = Object.keys(THEME_CHEATS).find(k => k === cbuf);
+  const partial = Object.keys(THEME_CHEATS).some(k => k.startsWith(cbuf) && cbuf.length > 0);
+  if(partial){ chud.textContent='[ '+cbuf+' ]'; chud.classList.add('show'); }
   else { cbuf=''; chud.classList.remove('show'); }
-  if(cbuf===CHEAT){
+  if(match){
+    const cls = THEME_CHEATS[match];
     cbuf=''; chud.classList.remove('show');
-    const on=document.body.classList.toggle('legacy');
-    showToast(on?'Classic mode — type FORMCHECK to restore':'Premium mode restored','info',2500);
+    THEMES.forEach(t => document.body.classList.remove(t));
+    document.body.classList.add(cls);
+    showToast(THEME_LABELS[cls]+' activated','info',2500);
   }
   clearTimeout(ctmr);
   ctmr=setTimeout(()=>{ cbuf=''; chud.classList.remove('show'); }, 2000);
 });
-
 /* ════════════════════════════════════════════════
    PREVIOUS POLICY NUMBER — auto-fill + preview
 ════════════════════════════════════════════════ */
@@ -784,121 +954,122 @@ function fmtDate(iso){
   return d ? fmtDateObj(d) : iso;
 }
 
-/* ════ MULTI-ROW POLICY INFO ════════════════════════════════ */
-let piRowCount = 0;
+function onEffDateInput(){
+  // Legacy stub — no-op, entry-specific handlers used now
+}
+function autoFillExpiry(){ onEffDateInput(); }
+function updatePolicyPreview(){ if(typeof refreshPolicePreviews==='function') refreshPolicePreviews(); }
 
-function addPolicyRow(){
-  piRowCount++;
-  const id = piRowCount;
-  const container = document.getElementById('piRows');
-  const div = document.createElement('div');
-  div.className = 'pinfo-row';
-  div.id = 'piRow'+id;
-  div.innerHTML = `
-    <div class="pinfo-field">
-      <span class="pinfo-label">Policy Number:</span>
-      <input class="pinfo-inp pi-num" id="piNum${id}" placeholder="e.g. RIB54833"
-        oninput="updatePolicyPreview()" autocomplete="off">
-    </div>
-    <div class="pinfo-field">
-      <span class="pinfo-label">Effective Date:</span>
-      <input class="pinfo-inp pi-eff" id="piEff${id}" type="text"
-        placeholder="MM/DD/YYYY or paste any date"
-        oninput="onRowEffInput(${id})" onpaste="setTimeout(()=>onRowEffInput(${id}),10)"
-        autocomplete="off">
-    </div>
-    <div class="pinfo-field">
-      <span class="pinfo-label">Expiration Date:</span>
-      <input class="pinfo-inp pi-exp" id="piExp${id}" type="text"
-        placeholder="Auto-filled (+1 yr) or enter manually"
-        oninput="updatePolicyPreview()" onpaste="setTimeout(updatePolicyPreview,10)"
-        autocomplete="off">
-    </div>
-    <button class="pinfo-remove-btn" onclick="removePolicyRow(${id})" title="Remove this policy">✕</button>
-  `;
-  container.appendChild(div);
-  // hide/show remove buttons based on count
-  updateRemoveBtns();
-  updatePolicyPreview();
+/* ════════════════════════════════════════════════
+   MULTI-ENTRY PREVIOUS POLICY NUMBER
+════════════════════════════════════════════════ */
+let policyEntryCount = 0;
+
+function addPolicyEntry(){
+  const id = ++policyEntryCount;
+  const container = document.getElementById('policyEntries');
+  const entry = document.createElement('div');
+  entry.className = 'policy-entry';
+  entry.id = 'pe_'+id;
+  const showRemove = container.children.length > 0;
+  entry.innerHTML = `
+    <div class="policy-entry-fields">
+      <div class="pinfo-field">
+        <span class="pinfo-label">Policy Number:</span>
+        <input class="pinfo-inp pi-num" id="piNum_${id}" placeholder="e.g. RIB54833"
+          oninput="refreshPolicePreviews()" autocomplete="off">
+      </div>
+      <div class="pinfo-field">
+        <span class="pinfo-label">Effective Date:</span>
+        <input class="pinfo-inp pi-eff" id="piEff_${id}" type="text"
+          placeholder="MM/DD/YYYY"
+          oninput="onEntryEffDate(${id})" onpaste="setTimeout(()=>onEntryEffDate(${id}),10)"
+          autocomplete="off">
+      </div>
+      <div class="pinfo-field">
+        <span class="pinfo-label">Expiration Date:</span>
+        <input class="pinfo-inp pi-exp" id="piExp_${id}" type="text"
+          placeholder="MM/DD/YYYY"
+          oninput="refreshPolicePreviews()" onpaste="setTimeout(refreshPolicePreviews,10)"
+          autocomplete="off">
+      </div>
+      ${showRemove
+        ? `<button class="btn-rm-entry" onclick="removePolicyEntry(${id})" title="Remove this entry">✕</button>`
+        : '<div></div>'}
+    </div>`;
+  container.appendChild(entry);
+  refreshPolicePreviews();
 }
 
-function removePolicyRow(id){
-  const el = document.getElementById('piRow'+id);
-  if(el) el.remove();
-  updateRemoveBtns();
-  updatePolicyPreview();
+function removePolicyEntry(id){
+  const el = document.getElementById('pe_'+id);
+  if(!el) return;
+  el.style.transition='opacity .2s,max-height .25s';
+  el.style.opacity='0';
+  setTimeout(()=>{ el.remove(); refreshPolicePreviews(); }, 220);
 }
 
-function updateRemoveBtns(){
-  const rows = document.querySelectorAll('#piRows .pinfo-row');
-  rows.forEach(r=>{
-    const btn = r.querySelector('.pinfo-remove-btn');
-    if(btn) btn.style.display = rows.length > 1 ? 'flex' : 'none';
-  });
-}
-
-function onRowEffInput(id){
-  const raw = document.getElementById('piEff'+id).value.trim();
-  const d   = parseAnyDate(raw);
+function onEntryEffDate(id){
+  const effEl = document.getElementById('piEff_'+id);
+  const expEl = document.getElementById('piExp_'+id);
+  if(!effEl||!expEl) return;
+  const d = parseAnyDate(effEl.value.trim());
   if(d && !isNaN(d)){
-    const exp = new Date(d);
-    exp.setFullYear(exp.getFullYear()+1);
-    document.getElementById('piExp'+id).value = fmtDateObj(exp);
+    const exp = new Date(d); exp.setFullYear(exp.getFullYear()+1);
+    expEl.value = fmtDateObj(exp);
   }
-  updatePolicyPreview();
+  refreshPolicePreviews();
 }
 
-// Legacy stubs (not used but kept for safety)
-function onEffDateInput(){ updatePolicyPreview(); }
-function autoFillExpiry(){ updatePolicyPreview(); }
-
-function _getPiRows(){
-  return Array.from(document.querySelectorAll('#piRows .pinfo-row')).map(r=>{
-    const num    = r.querySelector('.pi-num')?.value.trim()||'';
-    const effRaw = r.querySelector('.pi-eff')?.value.trim()||'';
-    const expRaw = r.querySelector('.pi-exp')?.value.trim()||'';
-    const effD   = parseAnyDate(effRaw), expD = parseAnyDate(expRaw);
-    const effStr = effD ? fmtDateObj(effD) : effRaw;
-    const expStr = expD ? fmtDateObj(expD) : expRaw;
-    return {num, effRaw, expRaw, effStr, expStr};
+function refreshPolicePreviews(){
+  const previews = document.getElementById('piPreviews');
+  if(!previews) return;
+  previews.innerHTML = '';
+  document.querySelectorAll('.policy-entry').forEach(entry=>{
+    const num    = entry.querySelector('.pi-num')?.value.trim()||'';
+    const effRaw = entry.querySelector('.pi-eff')?.value.trim()||'';
+    const expRaw = entry.querySelector('.pi-exp')?.value.trim()||'';
+    if(!num && !effRaw && !expRaw) return;
+    const effD=parseAnyDate(effRaw), expD=parseAnyDate(expRaw);
+    const effStr=effD?fmtDateObj(effD):effRaw;
+    const expStr=expD?fmtDateObj(expD):expRaw;
+    const copyText = `Policy Number: ${num||'—'}     Term: ${effStr||'—'} - ${expStr||'—'}`;
+    const prev = document.createElement('div');
+    prev.className = 'pinfo-preview';
+    prev.style.display = 'block';
+    prev.title = 'Click to copy';
+    prev.innerHTML = `<strong>Policy Number:</strong> ${escHtml(num||'—')}&emsp;<strong>Term:</strong> ${escHtml(effStr||'—')} – ${escHtml(expStr||'—')}<span class="copy-hint">⎘ click to copy</span>`;
+    prev.addEventListener('click',function(){
+      navigator.clipboard.writeText(copyText).then(()=>{
+        this.style.background='rgba(52,211,153,.18)';
+        showToast('Copied!','ok',1800);
+        setTimeout(()=>this.style.background='',700);
+      }).catch(()=>showToast('Copy failed','err'));
+    });
+    previews.appendChild(prev);
   });
 }
 
-function updatePolicyPreview(){
-  const rows = _getPiRows();
-  const preview = document.getElementById('piPreview');
-  const filled = rows.filter(r=>r.num||r.effRaw||r.expRaw);
-  if(!filled.length){ preview.style.display='none'; return; }
-  preview.style.display='block';
-  preview.innerHTML = filled.map(r=>{
-    let term = '';
-    if(r.effStr && r.expStr)       term = r.effStr+' – '+r.expStr;
-    else if(r.effStr)              term = r.effStr+' – (expiry pending)';
-    const numPart  = `<strong>Policy Number:</strong> ${r.num||'—'}`;
-    const termPart = term ? `&emsp;<strong>Term:</strong> ${term}` : '';
-    return `<div class="pi-line">${numPart}${termPart}</div>`;
-  }).join('');
+function getAllPolicyInfoText(){
+  let lines=[];
+  document.querySelectorAll('.policy-entry').forEach(entry=>{
+    const num=entry.querySelector('.pi-num')?.value.trim()||'';
+    const effRaw=entry.querySelector('.pi-eff')?.value.trim()||'';
+    const expRaw=entry.querySelector('.pi-exp')?.value.trim()||'';
+    if(!num&&!effRaw&&!expRaw) return;
+    const effD=parseAnyDate(effRaw),expD=parseAnyDate(expRaw);
+    lines.push(`  Policy Number: ${num||'—'}   Term: ${effD?fmtDateObj(effD):effRaw||'—'} – ${expD?fmtDateObj(expD):expRaw||'—'}`);
+  });
+  return lines.length ? 'Previous Policy Number\n'+lines.join('\n')+'\n' : '';
 }
 
-function getPolicyInfoText(){
-  const rows = _getPiRows().filter(r=>r.num||r.effRaw||r.expRaw);
-  if(!rows.length) return '';
-  let out = 'Previous Policy Numbers\n';
-  rows.forEach(r=>{
-    out += `  Policy Number: ${r.num||'—'}`;
-    if(r.effStr||r.expStr) out += `  |  Term: ${r.effStr||'—'} – ${r.expStr||'—'}`;
-    out += '\n';
-  });
-  return out;
-}
+function getPolicyInfoText(){ return getAllPolicyInfoText(); }
 
 function resetPolicyInfo(){
-  const container = document.getElementById('piRows');
-  container.innerHTML='';
-  piRowCount=0;
-  document.getElementById('piPreview').style.display='none';
-  // re-add one blank row
-  addPolicyRow();
+  document.getElementById('policyEntries').innerHTML='';
+  document.getElementById('piPreviews').innerHTML='';
+  policyEntryCount=0;
+  addPolicyEntry();
 }
 
 
@@ -1731,12 +1902,15 @@ function doCopy(){ navigator.clipboard.writeText(buildReport()).then(()=>showToa
 
 function doCSV(){
   const q=pumaaData.quoteNum||'';
-  const piRows=_getPiRows().filter(r=>r.num||r.effRaw||r.expRaw);
+  const pnum=document.getElementById('piPolicyNum').value.trim();
+  const effRaw=document.getElementById('piEffDate').value.trim();
+  const expRaw=document.getElementById('piExpDate').value.trim();
+  const effD=parseAnyDate(effRaw), expD=parseAnyDate(expRaw);
+  const effStr=effD?fmtDateObj(effD):effRaw;
+  const expStr=expD?fmtDateObj(expD):expRaw;
   let csv=`Quote,${q}\nDate,${new Date().toLocaleDateString()}\n`;
-  piRows.forEach((r,i)=>{
-    csv+=`Previous Policy ${piRows.length>1?i+1:'Number'},"${r.num||'—'}"\n`;
-    if(r.effStr||r.expStr) csv+=`Term ${piRows.length>1?i+1:''},"${r.effStr||'—'} – ${r.expStr||'—'}"\n`;
-  });
+  if(pnum) csv+=`Previous Policy Number,${pnum}\n`;
+  if(effStr||expStr) csv+=`Term,"${effStr||'—'} – ${expStr||'—'}"\n`;
   csv+=`\nCategory,PUMAA Form Number,Policy Form Number,Form Name,Note\n`;
   SEC_CONFIG.forEach(cfg=>{
     (lastResult[cfg.key]||[]).forEach((item,i)=>{
@@ -1784,8 +1958,8 @@ function toggleIdeas(){
 })();
 
 checkRunnable();
-// Initialise with one blank policy row
-addPolicyRow();
+// Initialise first previous-policy entry
+addPolicyEntry();
 </script>
 </body>
 </html>
