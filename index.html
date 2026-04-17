@@ -1279,12 +1279,17 @@ function extractPolicyForms(raw){
 
   // PASS 1 — Match every known PUMAA form number.
   // Use capturing regex to get the ACTUAL text from the policy (for dual-format display)
-  [...pumaaData.sys,...pumaaData.uw].forEach(f=>{
+[...pumaaData.sys,...pumaaData.uw].forEach(f=>{
     const esc=f.num.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'[\\s\\-\\.]*');
     const re=new RegExp('(?<![A-Z0-9])('+esc+')(?![A-Z0-9])','i');
     const match=re.exec(raw);
-    if(match) tryAdd(f.num, match[1]); // pass actual matched text as policyFmt
-  });
+    if(!match) return;
+    // Guard: if match is followed by " ALL LINES", " CYBER", " EQB BU" etc.
+    // (space + 2+ uppercase letters = suffix = different form entirely)
+    const after=raw.slice(match.index+match[0].length);
+    if(/^ +[A-Z]{2,}/.test(after)) return;
+    tryAdd(f.num, match[1]);
+});
 
   // PASS 2 — Extract from parentheses: (RSC WE 01 2023)
   const pr=/\(\s*([A-Z0-9][A-Z0-9\s\-\.\/]{1,40}?)\s*\)/gi; let m;
@@ -1344,6 +1349,11 @@ function findFuzzyMatch(formNum, formDesc){
 
   [...pumaaData.sys,...pumaaData.uw].forEach(f=>{
     if(norm(f.num)===norm(formNum)) return; // exact match already handled
+    // Guard: if policy form is a suffixed variant of PUMAA form (or vice versa),
+    // they are different forms — never suggest as a fuzzy match
+    const nForm=norm(formNum), nPumaa=norm(f.num);
+    if(nForm.startsWith(nPumaa) && nForm.length>nPumaa.length) return;
+    if(nPumaa.startsWith(nForm) && nPumaa.length>nForm.length) return;
 
     const pumaaYear = extractYear(f.num);
     const pumaaBase = stripYear(f.num);
