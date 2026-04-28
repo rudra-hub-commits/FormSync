@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RISCO · FormSync v1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ════ RESET ════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* ════ TOKENS ═══════════════════════════════ */
+:root{
+  --bg:#0f1117;--glass:rgba(255,255,255,.035);--glass2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#4b5e78;
+  --indigo:#818cf8;--indigo2:#6366f1;--indigo3:#4f46e5;
+  --green:#34d399;--green2:#059669;--green-lt:rgba(52,211,153,.1);--green-bd:rgba(52,211,153,.25);
+  --amber:#fbbf24;--amber2:#d97706;--amber-lt:rgba(251,191,36,.1);--amber-bd:rgba(251,191,36,.25);
+  --red:#f87171;--red-lt:rgba(248,113,113,.1);--red-bd:rgba(248,113,113,.25);
+  --teal:#2dd4bf;--teal-lt:rgba(45,212,191,.1);--teal-bd:rgba(45,212,191,.25);
+  --r:14px;--r-sm:9px;--r-xs:5px;
+  --sh:0 4px 20px rgba(0,0,0,.4);--sh-lg:0 16px 50px rgba(0,0,0,.5);
+}
+
+/* ════ BASE ══════════════════════════════════ */
+html,body{min-height:100vh;background:var(--bg);font-family:'Outfit',system-ui,sans-serif;font-size:14px;color:var(--text);line-height:1.55}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 55% 35% at 8% 12%,rgba(99,102,241,.16) 0%,transparent 60%),
+             radial-gradient(ellipse 45% 35% at 92% 85%,rgba(45,212,191,.09) 0%,transparent 55%)}
+body::after{content:'';position:fixed;width:500px;height:500px;top:-180px;right:-150px;z-index:0;pointer-events:none;
+  background:radial-gradient(circle,rgba(99,102,241,.11) 0%,transparent 70%);border-radius:50%;
+  animation:orb 18s ease-in-out infinite alternate}
+@keyframes orb{from{transform:translate(0,0)}to{transform:translate(-60px,50px) scale(1.1)}}
+.app{max-width:1060px;margin:0 auto;padding:2rem 1.5rem 5rem;position:relative;z-index:1}
+
+/* ════ HEADER ════════════════════════════════ */
+.hdr{display:flex;align-items:center;gap:16px;margin-bottom:1.75rem;padding:1.25rem 1.75rem;
+  background:var(--glass2);backdrop-filter:blur(20px);border:1px solid var(--border2);
+  border-radius:var(--r);box-shadow:var(--sh);position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,.65),rgba(45,212,191,.4),transparent)}
+.hdr-logo{width:46px;height:46px;border-radius:13px;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#818cf8);
+  display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 4px 18px rgba(79,70,229,.42)}
+.hdr-text h1{font-size:20px;font-weight:800;letter-spacing:-.5px;
+  background:linear-gradient(135deg,#f1f5f9,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hdr-text p{font-size:12px;color:var(--text3);margin-top:2px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.ver-tag{font-size:10.5px;font-weight:700;background:rgba(129,140,248,.14);color:var(--indigo);
+  border:1px solid rgba(129,140,248,.28);border-radius:20px;padding:3px 11px;font-family:'JetBrains Mono',monospace}
+.hdr-clock{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+/* ════ STEPPER ═══════════════════════════════ */
+.stepper{display:flex;align-items:center;margin-bottom:1.5rem}
+.snode{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.scirc{width:31px;height:31px;border-radius:50%;border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+  color:var(--text3);background:var(--glass);transition:all .3s;backdrop-filter:blur(8px)}
+.snode.active .scirc{border-color:var(--indigo);color:var(--indigo);background:rgba(129,140,248,.1);
+  box-shadow:0 0 0 4px rgba(99,102,241,.14)}
+.snode.done .scirc{border-color:var(--green);color:#fff;background:var(--green2);
+  box-shadow:0 0 0 4px rgba(52,211,153,.13)}
+.slabel{font-size:12px;font-weight:600;color:var(--text3);transition:color .3s}
+.snode.active .slabel{color:var(--indigo)}.snode.done .slabel{color:var(--green)}
+.sline{flex:1;height:2px;margin:0 13px;background:var(--border);border-radius:2px;overflow:hidden;position:relative}
+.sline::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,var(--green2),var(--green));
+  transform:scaleX(0);transform-origin:left;transition:transform .5s ease}
+.sline.done::after{transform:scaleX(1)}
+
+/* ════ CARDS ═════════════════════════════════ */
+.card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.5rem 1.75rem;margin-bottom:1rem;
+  box-shadow:var(--sh);transition:border-color .3s,box-shadow .3s;position:relative;overflow:hidden}
+.cglow{position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border2),transparent);transition:background .3s}
+.card.active .cglow{background:linear-gradient(90deg,transparent,rgba(129,140,248,.7),transparent)}
+.card.active{border-color:rgba(129,140,248,.22);box-shadow:0 0 0 4px rgba(99,102,241,.05),var(--sh)}
+.card.done{border-color:rgba(52,211,153,.18)}
+.card.done .cglow{background:linear-gradient(90deg,transparent,rgba(52,211,153,.5),transparent)}
+/* ════ POLICY INFO CARD ══════════════════════ */
+.pinfo-card{
+  background:var(--glass2);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);border-radius:var(--r);
+  padding:1.25rem 1.75rem;margin-bottom:1.25rem;
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.pinfo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,.5),rgba(45,212,191,.3),transparent)}
+.pinfo-title{font-size:13px;font-weight:800;color:var(--indigo);letter-spacing:.04em;
+  text-transform:uppercase;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.pinfo-title span{width:20px;height:20px;border-radius:5px;background:rgba(129,140,248,.12);
+  display:flex;align-items:center;justify-content:center;font-size:11px}
+.pinfo-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end}
+.pinfo-field{display:flex;flex-direction:column;gap:5px}
+.pinfo-label{font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em}
+.pinfo-inp{
+  background:rgba(0,0,0,.28);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:9px 13px;font-size:13px;font-weight:600;color:var(--text);
+  font-family:'JetBrains Mono',monospace;transition:border-color .2s,box-shadow .2s;width:100%;
+}
+.pinfo-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.pinfo-inp::placeholder{color:var(--text3);font-weight:400}
+.pinfo-inp:disabled{color:var(--text2);cursor:default;opacity:.8}
+.pinfo-date{display:flex;align-items:center;gap:8px}
+.pinfo-date-sep{font-size:13px;color:var(--text3);font-weight:600;flex-shrink:0}
+.pinfo-term-row{grid-column:2/-1;display:flex;gap:8px;align-items:end}
+.pinfo-term-row .pinfo-field{flex:1}
+.pinfo-preview{
+  margin-top:.875rem;padding:9px 14px;
+  background:rgba(129,140,248,.06);border:1px solid rgba(129,140,248,.14);
+  border-radius:var(--r-xs);font-size:12px;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;display:none;
+}
+.pinfo-preview strong{color:var(--text);font-weight:600}
+@media(max-width:700px){.pinfo-fields{grid-template-columns:1fr}.pinfo-term-row{grid-column:1}}
+
+.chead{display:flex;align-items:flex-start;gap:14px;margin-bottom:1.25rem;margin-top:4px}
+.cicon{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;font-size:18px;background:var(--glass2);border:1px solid var(--border);transition:all .3s}
+.card.active .cicon{background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.28)}
+.card.done .cicon{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.28)}
+.ctitle{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;letter-spacing:-.2px}
+.csub{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* ════ UPLOAD ZONE ═══════════════════════════ */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--r-sm);padding:2rem 1rem;
+  text-align:center;cursor:pointer;transition:all .22s;position:relative;background:var(--glass)}
+.upload-zone:hover,.upload-zone.dragging{border-color:var(--indigo);background:rgba(129,140,248,.07);border-style:solid}
+.upload-zone.loaded{border-color:var(--green);border-style:solid;background:rgba(52,211,153,.05)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2}
+.uz-emoji{font-size:30px;margin-bottom:8px;display:block;transition:transform .3s}
+.upload-zone:hover .uz-emoji{transform:translateY(-3px)}
+.uz-label{font-size:13.5px;font-weight:600;color:var(--text2);margin-bottom:3px}
+.uz-hint{font-size:11.5px;color:var(--text3)}
+
+/* ════ STEP 2 DUAL INPUT ════════════════════ */
+.s2-tabs{display:flex;gap:6px;margin-bottom:.875rem}
+.s2-tab{background:var(--glass2);border:1px solid var(--border);border-radius:7px;
+  padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text2);
+  font-family:'Outfit',sans-serif;transition:all .15s}
+.s2-tab.active{background:rgba(129,140,248,.12);border-color:rgba(129,140,248,.35);color:var(--indigo)}
+.s2-panel{display:none}.s2-panel.open{display:block}
+
+/* PDF upload in step 2 */
+.pdf-zone{border:2px dashed var(--border2);border-radius:var(--r-sm);padding:1.5rem;
+  text-align:center;cursor:pointer;transition:all .22s;position:relative;background:var(--glass)}
+.pdf-zone:hover,.pdf-zone.dragging{border-color:var(--indigo);background:rgba(129,140,248,.07);border-style:solid}
+.pdf-zone.loaded{border-color:var(--green);border-style:solid;background:rgba(52,211,153,.05)}
+.pdf-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;z-index:2}
+.pdf-status{margin-top:.75rem;font-size:12px;color:var(--text2);display:none}
+.pdf-spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(129,140,248,.3);
+  border-top-color:var(--indigo);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ════ BADGES / ALERTS / HINTS ═══════════════ */
+.pbadges{display:flex;flex-wrap:wrap;gap:7px;margin-top:.875rem}
+.pb{display:flex;align-items:center;gap:7px;background:var(--glass2);border:1px solid var(--border);
+  border-radius:var(--r-xs);padding:6px 12px;font-size:12px;color:var(--text2)}
+.pb strong{color:var(--text);font-weight:700}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-b{background:var(--indigo)}.dot-a{background:var(--amber)}.dot-g{background:var(--green)}
+.alert-box{display:none;margin-top:.75rem;padding:9px 13px;background:var(--red-lt);
+  border:1px solid var(--red-bd);border-radius:var(--r-sm);font-size:12.5px;color:var(--red)}
+.hint-box{margin-top:10px;padding:9px 13px;background:rgba(129,140,248,.07);
+  border:1px solid rgba(129,140,248,.18);border-radius:var(--r-sm);font-size:12px;color:#a5b4fc;line-height:1.55}
+textarea{width:100%;min-height:130px;padding:11px 13px;border:1.5px solid var(--border2);
+  border-radius:var(--r-sm);font-size:12.5px;font-family:'JetBrains Mono',monospace;resize:vertical;
+  background:rgba(0,0,0,.3);color:var(--text);line-height:1.65;transition:border-color .2s,box-shadow .2s}
+textarea::placeholder{color:var(--text3)}
+textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba(99,102,241,.11)}
+.detect-note{display:none;align-items:center;gap:7px;margin-top:8px;font-size:12.5px;color:var(--text2)}
+.detect-note .ok{color:var(--green);font-weight:700}
+
+/* ════ ACTION BAR ════════════════════════════ */
+.action-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:1.75rem;
+  padding:1rem 1.5rem;background:var(--glass2);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);border-radius:var(--r);box-shadow:var(--sh)}
+.btn-primary{display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  color:#fff;border:none;border-radius:9px;padding:11px 22px;font-size:13.5px;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 18px rgba(79,70,229,.38);
+  transition:all .2s;position:relative;overflow:hidden}
+.btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .4s}
+.btn-primary:hover:not(:disabled)::before{left:100%}
+.btn-primary:hover:not(:disabled){box-shadow:0 6px 26px rgba(79,70,229,.52);transform:translateY(-1px)}
+.btn-primary:disabled{background:rgba(255,255,255,.05);box-shadow:none;cursor:not-allowed;color:var(--text3);border:1px solid var(--border)}
+.btn-sec{background:var(--glass2);border:1px solid var(--border2);border-radius:8px;padding:9px 15px;
+  font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text2);font-family:'Outfit',sans-serif;
+  transition:all .15s;backdrop-filter:blur(8px)}
+.btn-sec:hover{background:rgba(255,255,255,.08);color:var(--text);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.btn-sbs{background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.25);color:var(--teal);
+  border-radius:8px;padding:9px 15px;font-size:12.5px;font-weight:600;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:all .15s}
+.btn-sbs.active{background:rgba(45,212,191,.18);border-color:rgba(45,212,191,.5)}
+.btn-sbs:hover{background:rgba(45,212,191,.14)}
+.status-pill{margin-left:auto;font-size:11.5px;color:var(--text3);font-weight:500}
+
+/* ════ STATS ══════════════════════════════════ */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.75rem}
+.stat{background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.25rem 1rem;text-align:center;position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s,border-color .2s;cursor:default}
+.stat:hover{transform:translateY(-3px)}
+.stat::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:var(--r)}
+.stat:hover::before{opacity:1}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.stat.sg{--gb:radial-gradient(circle at 50% 0%,rgba(52,211,153,.07),transparent 70%)}
+.stat.sg::before{background:var(--gb)}.stat.sg::after{background:linear-gradient(90deg,#059669,#34d399)}
+.stat.sg:hover{border-color:rgba(52,211,153,.22);box-shadow:0 0 24px rgba(52,211,153,.1)}
+.stat.uw{--gb:radial-gradient(circle at 50% 0%,rgba(251,191,36,.07),transparent 70%)}
+.stat.uw::before{background:var(--gb)}.stat.uw::after{background:linear-gradient(90deg,#d97706,#fbbf24)}
+.stat.uw:hover{border-color:rgba(251,191,36,.22);box-shadow:0 0 24px rgba(251,191,36,.1)}
+.stat.nr{--gb:radial-gradient(circle at 50% 0%,rgba(248,113,113,.07),transparent 70%)}
+.stat.nr::before{background:var(--gb)}.stat.nr::after{background:linear-gradient(90deg,#dc2626,#f87171)}
+.stat.nr:hover{border-color:rgba(248,113,113,.22);box-shadow:0 0 24px rgba(248,113,113,.1)}
+.stat.po{--gb:radial-gradient(circle at 50% 0%,rgba(45,212,191,.07),transparent 70%)}
+.stat.po::before{background:var(--gb)}.stat.po::after{background:linear-gradient(90deg,#0f766e,#2dd4bf)}
+.stat.po:hover{border-color:rgba(45,212,191,.22);box-shadow:0 0 24px rgba(45,212,191,.1)}
+.stat-n{font-size:36px;font-weight:900;line-height:1;margin-bottom:5px;letter-spacing:-1.5px}
+.cg{color:var(--green)}.ca{color:var(--amber)}.cr{color:var(--red)}.ct{color:var(--teal)}
+.stat-l{font-size:10.5px;color:var(--text2);line-height:1.45;font-weight:500}
+
+/* ════ RESULTS CARD ══════════════════════════ */
+.res-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-lg);margin-bottom:1.25rem}
+.res-search{padding:11px 18px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.18)}
+.srch-wrap{position:relative}
+.srch-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--text3);pointer-events:none}
+.srch-inp{width:100%;padding:7px 11px 7px 32px;border:1px solid var(--border2);border-radius:var(--r-sm);
+  font-size:12.5px;background:rgba(0,0,0,.28);color:var(--text);font-family:'Outfit',sans-serif}
+.srch-inp::placeholder{color:var(--text3)}
+.srch-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.sec-hd{display:flex;align-items:center;gap:11px;padding:12px 18px;cursor:pointer;user-select:none;
+  border-bottom:1px solid var(--border);transition:background .15s}
+.sec-hd:hover{background:rgba(255,255,255,.025)}
+.sec-icon{width:29px;height:29px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;flex-shrink:0}
+.sec-title{font-size:13px;font-weight:700;flex:1;letter-spacing:-.1px}
+.sec-sub{font-size:11px;font-weight:400;color:var(--text3);margin-left:5px}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.p-g{background:var(--green-lt);color:var(--green);border:1px solid var(--green-bd)}
+.p-a{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-bd)}
+.p-r{background:var(--red-lt);color:var(--red);border:1px solid var(--red-bd)}
+.p-t{background:var(--teal-lt);color:var(--teal);border:1px solid var(--teal-bd)}
+.sarr{font-size:10px;color:var(--text3);transition:transform .25s}
+.sarr.open{transform:rotate(90deg)}
+.col-hdr{display:grid;gap:8px;padding:6px 18px;background:rgba(0,0,0,.22);border-bottom:1px solid var(--border)}
+.col-hdr span{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em}
+.form-row{display:grid;gap:8px;align-items:start;padding:10px 18px;
+  border-bottom:1px solid rgba(255,255,255,.04);font-size:12.5px;transition:background .1s;position:relative}
+.form-row:last-child{border-bottom:none}
+.form-row:hover{background:rgba(255,255,255,.025)}
+.form-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;opacity:0;transition:opacity .15s}
+.form-row:hover::before{opacity:1}
+.fr-sg::before{background:var(--green)}.fr-uw::before{background:var(--amber)}
+.fr-nr::before{background:var(--red)}.fr-po::before{background:var(--teal)}
+
+/* Dual format display */
+.f-num-wrap{display:flex;flex-direction:column;gap:4px}
+.f-num{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);
+  word-break:break-all;line-height:1.4;font-weight:500;
+  cursor:pointer;border-radius:3px;padding:2px 5px;margin:-2px -5px;
+  display:inline-block;transition:background .15s;
+}
+.f-num:hover{background:rgba(129,140,248,.15)}
+.copy-flash{background:rgba(52,211,153,.3)!important;transition:none!important}
+
+/* ── remove button ── */
+.rm-btn{
+  background:transparent;border:1px solid rgba(248,113,113,.22);border-radius:5px;
+  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;cursor:pointer;color:rgba(248,113,113,.45);transition:all .15s;flex-shrink:0;
+}
+.rm-btn:hover{background:rgba(248,113,113,.1);color:var(--red);border-color:var(--red)}
+.fmt-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:'JetBrains Mono',monospace;
+  padding:2px 7px;border-radius:4px;font-weight:600;white-space:nowrap}
+.fmt-pumaa{background:rgba(129,140,248,.1);color:var(--indigo);border:1px solid rgba(129,140,248,.22)}
+.fmt-policy{background:rgba(251,191,36,.08);color:var(--amber);border:1px solid rgba(251,191,36,.22)}
+.fmt-match{background:rgba(52,211,153,.07);color:var(--green);border:1px solid rgba(52,211,153,.18)}
+.fmt-lbl{font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.65;margin-right:1px}
+
+/* Fuzzy match suggestion */
+.fuzzy-hint{display:flex;align-items:center;gap:7px;margin-top:5px;padding:5px 9px;
+  background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.18);border-radius:5px;
+  font-size:11px;color:var(--teal);transition:background .15s}
+.fuzzy-hint:hover{background:rgba(45,212,191,.1)}
+.fuzzy-score{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:10px;
+  background:rgba(45,212,191,.12);padding:1px 6px;border-radius:3px}
+
+/* ── accept match button ── */
+.accept-btn{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);
+  color:var(--green);border-radius:5px;padding:3px 9px;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;
+}
+.accept-btn:hover{background:rgba(52,211,153,.22);border-color:var(--green)}
+
+/* ── year diff badge ── */
+.year-diff{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  padding:1px 6px;border-radius:4px;font-weight:700;
+  background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.25);
+  white-space:nowrap;
+}
+
+
+.f-name{color:var(--text2);line-height:1.4;font-weight:500;font-size:12.5px}
+.f-name em{color:var(--text3);font-size:11.5px;font-weight:400}
+.note-inp{width:100%;border:1px solid var(--border2);border-radius:var(--r-xs);padding:6px 9px;
+  font-size:11.5px;background:rgba(0,0,0,.28);color:var(--text);font-family:'Outfit',sans-serif;transition:all .15s}
+.note-inp::placeholder{color:var(--text3)}
+.note-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.09)}
+.note-inp.has-note{border-color:rgba(52,211,153,.32);background:rgba(52,211,153,.05);color:var(--green)}
+.flag-btn{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:5px 9px;
+  font-size:11px;font-weight:600;cursor:pointer;color:var(--text3);font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap}
+.flag-btn:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-lt)}
+.flag-btn.flagged{border-color:var(--amber);color:var(--amber);background:var(--amber-lt)}
+.disc-inp-wrap{display:none;grid-column:1/-1;padding:7px 0 3px}
+.disc-inp-wrap.open{display:block}
+.disc-inp{width:100%;border:1px solid var(--amber-bd);border-radius:6px;padding:7px 11px;
+  font-size:12px;background:rgba(251,191,36,.05);color:var(--amber);font-family:'Outfit',sans-serif}
+.disc-inp::placeholder{color:rgba(251,191,36,.45)}
+.disc-inp:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(251,191,36,.09)}
+.empty-msg{padding:20px 18px;font-size:12.5px;color:var(--text3);font-style:italic;text-align:center}
+
+/* ════ SIDE-BY-SIDE VIEW ════════════════════ */
+.sbs-wrap{display:none;gap:0}
+.sbs-wrap.open{display:grid;grid-template-columns:1fr 1fr}
+.sbs-panel{border-right:1px solid var(--border)}
+.sbs-panel:last-child{border-right:none}
+.sbs-hdr{padding:10px 18px;background:rgba(0,0,0,.22);border-bottom:1px solid var(--border);
+  font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.sbs-row{display:grid;grid-template-columns:120px 1fr;gap:6px;align-items:center;
+  padding:8px 18px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px}
+.sbs-row:hover{background:rgba(255,255,255,.025)}
+.sbs-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;word-break:break-all}
+.sbs-name{color:var(--text2);font-size:11.5px}
+.sbs-status{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ss-matched{background:var(--green)}.ss-uw{background:var(--amber)}.ss-missing{background:var(--red)}.ss-unknown{background:var(--text3)}
+
+/* ════ DISCREPANCY SECTION ═══════════════════ */
+.disc-sec{background:rgba(251,191,36,.04);border:1px solid rgba(251,191,36,.18);
+  border-radius:var(--r);margin-bottom:1.25rem;overflow:hidden;
+  box-shadow:0 0 28px rgba(251,191,36,.05),var(--sh);backdrop-filter:blur(20px)}
+.disc-hd{display:flex;align-items:center;gap:11px;padding:12px 18px;
+  border-bottom:1px solid rgba(251,191,36,.14);background:rgba(251,191,36,.06);cursor:pointer;user-select:none}
+.disc-hd-icon{width:29px;height:29px;border-radius:8px;background:rgba(251,191,36,.1);color:var(--amber);
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.disc-hd-title{font-size:13px;font-weight:700;color:var(--amber);flex:1}
+.disc-hd-sub{font-size:11px;font-weight:400;color:rgba(251,191,36,.55);margin-left:5px}
+.disc-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;
+  background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.22);
+  font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.disc-col-hdr{display:grid;grid-template-columns:200px 1fr;gap:8px;padding:6px 18px;
+  background:rgba(0,0,0,.13);border-bottom:1px solid rgba(251,191,36,.09)}
+.disc-col-hdr span{font-size:10px;font-weight:700;color:rgba(251,191,36,.45);text-transform:uppercase;letter-spacing:.09em}
+.disc-row{display:grid;grid-template-columns:200px 1fr;gap:8px;padding:10px 18px;
+  border-bottom:1px solid rgba(251,191,36,.07);align-items:start}
+.disc-row:last-child{border-bottom:none}
+.disc-fn{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--amber);word-break:break-all;font-weight:500}
+.disc-fname{color:rgba(251,191,36,.55);font-size:11px;margin-top:2px}
+.disc-src{font-size:10px;font-weight:700;margin-top:4px;letter-spacing:.04em}
+.disc-note{color:var(--text2);font-size:12.5px;line-height:1.5}
+.disc-empty{padding:14px 18px;font-size:12.5px;color:rgba(251,191,36,.35);font-style:italic;text-align:center}
+
+/* ════ EXPORT ROW ════════════════════════════ */
+.export-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
+.btn-list{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.28);color:var(--amber);
+  border-radius:8px;padding:9px 15px;font-size:12.5px;font-weight:600;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:all .15s}
+.btn-list:hover{background:rgba(251,191,36,.13);transform:translateY(-1px)}
+
+/* ════ IDEAS PANEL ═══════════════════════════ */
+.ideas-panel{margin-top:2.5rem;background:var(--glass);backdrop-filter:blur(20px);
+  border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ideas-hd{display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid var(--border);
+  background:rgba(129,140,248,.05);cursor:pointer;user-select:none}
+.ideas-hd-icon{width:29px;height:29px;border-radius:8px;background:rgba(129,140,248,.1);color:var(--indigo);
+  display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ideas-hd-title{font-size:13px;font-weight:700;color:var(--indigo);flex:1}
+.ideas-body{padding:1.25rem 1.5rem;display:none}
+.ideas-body.open{display:block}
+.ideas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.idea-card{background:rgba(129,140,248,.04);border:1px solid rgba(129,140,248,.1);border-radius:10px;padding:12px 14px}
+.idea-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:6px}
+.tag-feature{background:rgba(52,211,153,.1);color:var(--green)}
+.tag-ux{background:rgba(129,140,248,.13);color:var(--indigo)}
+.tag-data{background:rgba(251,191,36,.1);color:var(--amber)}
+.tag-smart{background:rgba(45,212,191,.1);color:var(--teal)}
+.idea-card:hover{border-color:rgba(129,140,248,.25);background:rgba(129,140,248,.06);transition:all .2s}
+.tag-done{background:rgba(52,211,153,.15);color:var(--green);opacity:.8}
+.idea-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.idea-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.done-tag{font-size:9px;font-weight:800;background:rgba(52,211,153,.15);color:var(--green);
+  padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:.04em}
+
+/* ════ CHEAT HUD + TOAST ════════════════════ */
+.cheat-hud{position:fixed;bottom:78px;right:22px;z-index:9998;background:rgba(15,17,23,.96);
+  border:1px solid var(--border2);border-radius:9px;padding:7px 13px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;color:var(--indigo);backdrop-filter:blur(20px);
+  display:none;letter-spacing:.05em;box-shadow:var(--sh-lg)}
+.cheat-hud.show{display:block;animation:cin .2s ease}
+@keyframes cin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.toast-area{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:9px;background:rgba(15,17,23,.97);border:1px solid var(--border2);
+  border-radius:11px;padding:11px 17px;font-size:13px;color:var(--text);font-weight:500;
+  backdrop-filter:blur(24px);box-shadow:var(--sh-lg);animation:tin .35s cubic-bezier(.34,1.56,.64,1);max-width:340px}
+.toast.ok{border-color:var(--green-bd);color:var(--green)}.toast.err{border-color:var(--red-bd);color:var(--red)}
+.toast.warn{border-color:var(--amber-bd);color:var(--amber)}.toast.info{border-color:rgba(129,140,248,.4);color:var(--indigo)}
+@keyframes tin{from{opacity:0;transform:translateX(22px) scale(.92)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes tout{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(22px)}}
+
+/* ════ POLICY INFO CARD ══════════════════════ */
+.pinfo-card{
+  background:var(--glass2);backdrop-filter:blur(20px);
+  border:1px solid var(--border2);border-radius:var(--r);
+  padding:1.25rem 1.75rem;margin-bottom:1.25rem;
+  box-shadow:var(--sh);position:relative;overflow:hidden;
+}
+.pinfo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(129,140,248,.5),rgba(45,212,191,.3),transparent)}
+.pinfo-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.pinfo-title{font-size:12px;font-weight:800;color:var(--indigo);letter-spacing:.07em;
+  text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.btn-add-policy{background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);
+  border-radius:6px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;
+  color:var(--indigo);font-family:'Outfit',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px}
+.btn-add-policy:hover{background:rgba(129,140,248,.2);border-color:var(--indigo)}
+.policy-entries{display:flex;flex-direction:column;gap:10px}
+.policy-entry{background:rgba(0,0,0,.18);border:1px solid var(--border);border-radius:var(--r-sm);padding:.875rem 1rem;position:relative}
+.policy-entry-fields{display:grid;grid-template-columns:1fr 1fr 1fr 28px;gap:10px;align-items:end}
+.pinfo-field{display:flex;flex-direction:column;gap:5px}
+.pinfo-label{font-size:11px;font-weight:800;color:var(--text2);letter-spacing:.04em}
+.pinfo-inp{
+  background:rgba(0,0,0,.28);border:1px solid var(--border2);border-radius:var(--r-sm);
+  padding:9px 13px;font-size:13px;font-weight:600;color:var(--text);
+  font-family:'JetBrains Mono',monospace;transition:border-color .2s,box-shadow .2s;width:100%;
+}
+.pinfo-inp:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+.pinfo-inp::placeholder{color:var(--text3);font-weight:400;font-family:'Outfit',sans-serif;font-size:12px}
+.btn-rm-entry{background:transparent;border:1px solid rgba(248,113,113,.2);border-radius:6px;
+  width:28px;height:38px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;cursor:pointer;color:rgba(248,113,113,.4);transition:all .15s;align-self:end;flex-shrink:0}
+.btn-rm-entry:hover{background:rgba(248,113,113,.1);color:var(--red);border-color:var(--red)}
+.pinfo-previews{display:flex;flex-direction:column;gap:5px;margin-top:.75rem}
+.pinfo-preview{
+  padding:9px 14px;background:rgba(0,0,0,.18);
+  border:1px solid var(--border);border-radius:var(--r-xs);
+  font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;
+  display:none;cursor:pointer;transition:background .15s;user-select:all;
+}
+.pinfo-preview:hover{background:rgba(129,140,248,.08)}
+.pinfo-preview strong{color:var(--text);font-weight:700}
+.pinfo-preview .copy-hint{font-size:10px;color:var(--indigo);margin-left:8px;opacity:.65;font-style:italic}
+
+/* ════ HEADER RESET BTN ══════════════════════ */
+.hdr-reset-btn{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.22);border-radius:7px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--red);font-family:'Outfit',sans-serif;transition:all .15s}
+.hdr-reset-btn:hover{background:rgba(248,113,113,.18);border-color:var(--red)}
+/* ════ UNDERWRITING NOTES ════════════════════ */
+.unotes-card{background:var(--glass2);backdrop-filter:blur(20px);border:1px solid var(--border2);border-radius:var(--r);padding:1.25rem 1.75rem;margin-bottom:1.25rem;box-shadow:var(--sh);position:relative;overflow:hidden}
+.unotes-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(45,212,191,.5),rgba(129,140,248,.3),transparent)}
+.unotes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.unotes-title{font-size:12px;font-weight:800;color:var(--teal);letter-spacing:.07em;text-transform:uppercase}
+.unotes-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.875rem}
+/* chip-wrap: the insert btn + two action btns grouped */
+.chip-wrap{display:inline-flex;align-items:center;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:7px;overflow:hidden;transition:border-color .15s}
+.chip-wrap:hover{border-color:var(--teal)}
+.chip-insert{font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;background:transparent;border:none;color:var(--teal);font-family:'Outfit',sans-serif;transition:background .15s;white-space:nowrap}
+.chip-insert:hover{background:rgba(45,212,191,.12)}
+.chip-action-btn{width:22px;height:100%;border:none;border-left:1px solid rgba(45,212,191,.18);background:transparent;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;color:var(--text3)}
+.chip-edit-btn:hover{background:rgba(129,140,248,.12);color:var(--indigo)}
+.chip-rm-btn:hover{background:rgba(248,113,113,.12);color:var(--red)}
+.chip-new-btn{font-size:11px;font-weight:600;padding:5px 10px;cursor:pointer;background:rgba(129,140,248,.07);border:1px dashed rgba(129,140,248,.3);border-radius:7px;color:var(--indigo);font-family:'Outfit',sans-serif;transition:all .15s}
+.chip-new-btn:hover{background:rgba(129,140,248,.14);border-color:var(--indigo)}
+/* chip editor modal */
+.chip-editor-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.chip-editor-modal{background:var(--glass2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:min(480px,92vw);box-shadow:0 24px 60px rgba(0,0,0,.45);transform:translateY(20px);transition:transform .25s}
+.chip-editor-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.chip-editor-title{font-size:14px;font-weight:800;color:var(--text)}
+.chip-editor-close{background:transparent;border:none;font-size:16px;cursor:pointer;color:var(--text3);transition:color .15s;padding:2px 6px}
+.chip-editor-close:hover{color:var(--red)}
+.chip-editor-label{display:block;font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:5px;letter-spacing:.03em}
+.chip-editor-inp{width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;background:rgba(0,0,0,.2);color:var(--text);font-size:13px;font-family:'Outfit',sans-serif;transition:border-color .2s}
+.chip-editor-inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.09)}
+.chip-editor-ta{resize:vertical;min-height:90px;line-height:1.5}
+.chip-editor-actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.chip-editor-save{background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;color:var(--teal);font-family:'Outfit',sans-serif;transition:all .15s}
+.chip-editor-save:hover{background:rgba(45,212,191,.2);border-color:var(--teal)}
+.chip-editor-delete{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--red);font-family:'Outfit',sans-serif;transition:all .15s}
+.chip-editor-delete:hover{background:rgba(248,113,113,.18)}
+.chip-editor-cancel{background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text3);font-family:'Outfit',sans-serif;margin-left:auto;transition:all .15s}
+.chip-editor-cancel:hover{border-color:var(--border2);color:var(--text)}
+/* unote rows */
+.unotes-input-row{display:flex;gap:8px;margin-bottom:.875rem}
+.unotes-inp{flex:1;padding:9px 13px;border:1px solid var(--border2);border-radius:var(--r-sm);font-size:12.5px;background:rgba(0,0,0,.22);color:var(--text);font-family:'Outfit',sans-serif;transition:border-color .2s}
+.unotes-inp::placeholder{color:var(--text3)}
+.unotes-inp:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.09)}
+.btn-add-note{background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.28);border-radius:var(--r-sm);padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--teal);font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.btn-add-note:hover{background:rgba(45,212,191,.2);border-color:var(--teal)}
+.unotes-list{display:flex;flex-direction:column;gap:5px}
+.unote-row{display:flex;align-items:flex-start;gap:8px;background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.12);border-radius:var(--r-xs);padding:8px 12px}
+.unote-bullet{color:var(--teal);font-weight:800;flex-shrink:0;margin-top:2px;font-size:13px}
+.unote-text{flex:1;font-size:12.5px;color:var(--text2);line-height:1.5;background:transparent;border:none;outline:none;resize:none;font-family:'Outfit',sans-serif;min-height:22px;overflow:hidden;width:100%}
+.unote-text:focus{color:var(--text)}
+.unote-rm{background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:13px;padding:0 2px;transition:color .15s;flex-shrink:0;margin-top:1px}
+.unote-rm:hover{color:var(--red)}
+.unotes-empty{font-size:12px;color:var(--text3);font-style:italic;padding:4px 2px}
+/* ════ AUTO-DISC PANEL ═══════════════════════ */
+.adisc-panel{border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem;border:1px solid rgba(129,140,248,.2);background:rgba(99,102,241,.03);backdrop-filter:blur(20px);box-shadow:var(--sh)}
+.adisc-hd{display:flex;align-items:center;gap:11px;padding:12px 18px;cursor:pointer;user-select:none;background:linear-gradient(135deg,rgba(129,140,248,.07),rgba(251,191,36,.05));border-bottom:1px solid rgba(129,140,248,.12);transition:background .15s}
+.adisc-hd:hover{background:linear-gradient(135deg,rgba(129,140,248,.12),rgba(251,191,36,.08))}
+.adisc-hd-icon{width:29px;height:29px;border-radius:8px;color:var(--indigo);background:linear-gradient(135deg,rgba(129,140,248,.15),rgba(251,191,36,.1));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.adisc-hd-title{font-size:13px;font-weight:700;flex:1;background:linear-gradient(135deg,var(--indigo),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.adisc-hd-sub{font-size:11px;font-weight:400;-webkit-text-fill-color:var(--text3);margin-left:5px}
+.adisc-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;flex-shrink:0;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,rgba(129,140,248,.12),rgba(251,191,36,.1));color:var(--indigo);border:1px solid rgba(129,140,248,.25)}
+.adisc-row{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.adisc-row:last-child{border-bottom:none}
+.adisc-pair{display:grid;grid-template-columns:1fr 30px 1fr;gap:10px;align-items:center;margin-bottom:10px}
+.adisc-side{display:flex;flex-direction:column;gap:4px}
+.adisc-badge{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;border:1px solid;display:inline-block;align-self:flex-start;font-family:'JetBrains Mono',monospace}
+.adisc-badge-pumaa{background:rgba(129,140,248,.1);color:var(--indigo);border-color:rgba(129,140,248,.25)}
+.adisc-badge-policy{background:rgba(251,191,36,.08);color:var(--amber);border-color:rgba(251,191,36,.22)}
+.adisc-num{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--text);word-break:break-all}
+.adisc-name{font-size:12px;color:var(--text2);line-height:1.4}
+.adisc-arrow{font-size:17px;color:var(--text3);display:flex;align-items:center;justify-content:center}
+.adisc-reason{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:7px 12px;background:rgba(255,255,255,.03);border-radius:7px;border:1px solid var(--border)}
+.adisc-reason-label{font-size:12px;color:var(--text2);flex:1}
+.adisc-score{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(129,140,248,.1);color:var(--indigo);border:1px solid rgba(129,140,248,.2)}
+.adisc-actions{display:flex;gap:7px;flex-wrap:wrap}
+.adisc-accept-btn,.adisc-flag-btn,.adisc-dismiss-btn{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s}
+.adisc-accept-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:var(--green)}
+.adisc-accept-btn:hover{background:rgba(52,211,153,.2);border-color:var(--green);transform:translateY(-1px)}
+.adisc-flag-btn{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28);color:var(--amber)}
+.adisc-flag-btn:hover{background:rgba(251,191,36,.18);border-color:var(--amber);transform:translateY(-1px)}
+.adisc-dismiss-btn{background:var(--glass2);border:1px solid var(--border);color:var(--text3)}
+.adisc-dismiss-btn:hover{background:rgba(255,255,255,.08);color:var(--text)}
+/* f-name helpers */
+.f-name-src{font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);opacity:.65;margin-left:5px;font-style:normal;font-family:'JetBrains Mono',monospace}
+.f-name-none{font-size:11.5px;color:var(--text3);font-weight:400;font-style:italic}
+/* print */
+@media print{.no-print{display:none!important}#printInsuredHdr{display:block!important}body,html{background:#fff!important;color:#000!important}}
+
+/* ════ LIGHT MODE (default) ══════════════════════ */
+body.theme-light{
+  --bg:#f0f4f8;--glass:rgba(255,255,255,.92);--glass2:#ffffff;
+  --border:#d1d9e6;--border2:#b8c4d8;
+  --text:#0f172a;--text2:#334155;--text3:#64748b;
+  --indigo:#4f46e5;--green:#059669;--amber:#b45309;--red:#dc2626;--teal:#0f766e;
+  background:linear-gradient(135deg,#f0f4f8 0%,#e8eef6 100%);
+}
+body.theme-light::before,body.theme-light::after{display:none}
+body.theme-light .hdr{background:#fff;border-color:#d1d9e6;box-shadow:0 2px 12px rgba(15,23,42,.1)}
+body.theme-light .hdr-text h1{background:linear-gradient(135deg,#0f172a,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.theme-light .hdr-text p,body.theme-light .hdr-clock{color:#64748b}
+body.theme-light .ver-tag{background:#eff6ff;color:#4f46e5;border-color:#bfdbfe}
+body.theme-light .scirc{background:#fff;border-color:#b8c4d8;color:#64748b}
+body.theme-light .snode.active .scirc{border-color:#4f46e5;color:#4f46e5;background:#eff6ff}
+body.theme-light .snode.done .scirc{border-color:#059669;background:#059669}
+body.theme-light .sline{background:#d1d9e6}
+body.theme-light .card{background:#fff;border-color:#d1d9e6}
+body.theme-light .card.active{border-color:#a5b4fc}
+body.theme-light .cicon{background:#f1f5f9;border-color:#d1d9e6}
+body.theme-light .ctitle{color:#0f172a} body.theme-light .csub{color:#475569}
+body.theme-light .cglow{background:linear-gradient(90deg,transparent,rgba(79,70,229,.35),transparent)!important}
+body.theme-light .upload-zone,body.theme-light .pdf-zone{background:#f8fafc;border-color:#b8c4d8}
+body.theme-light .upload-zone:hover{background:#eef2ff;border-color:#4f46e5}
+body.theme-light .uz-label{color:#334155} body.theme-light .uz-hint{color:#64748b}
+body.theme-light .s2-tab{background:#f1f5f9;border-color:#d1d9e6;color:#475569}
+body.theme-light .s2-tab.active{background:#eff6ff;border-color:#a5b4fc;color:#4f46e5}
+body.theme-light textarea{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light textarea:focus{border-color:#4f46e5}
+body.theme-light textarea::placeholder{color:#94a3b8}
+body.theme-light .hint-box{background:#eff6ff;border-color:#bfdbfe;color:#3730a3}
+body.theme-light .action-bar{background:#fff;border-color:#d1d9e6}
+body.theme-light .btn-sec{background:#f1f5f9;border-color:#b8c4d8;color:#334155}
+body.theme-light .btn-sec:hover{background:#e2e8f0;color:#0f172a}
+body.theme-light .btn-sbs{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+body.theme-light .status-pill{color:#64748b}
+body.theme-light .stat{background:#fff;border-color:#d1d9e6;box-shadow:0 2px 8px rgba(15,23,42,.06)}
+body.theme-light .stat-l{color:#475569}
+body.theme-light .res-card{background:#fff;border-color:#d1d9e6}
+body.theme-light .res-search{background:#f8fafc;border-color:#d1d9e6}
+body.theme-light .srch-inp{background:#fff;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .srch-inp::placeholder{color:#94a3b8}
+body.theme-light .sec-hd{border-color:#e2e8f0}
+body.theme-light .sec-hd:hover{background:#f8fafc}
+body.theme-light .sec-sub,body.theme-light .sec-title{color:inherit}
+body.theme-light .col-hdr{background:#f8fafc;border-color:#e2e8f0}
+body.theme-light .col-hdr span{color:#64748b}
+body.theme-light .form-row{border-color:#f1f5f9}
+body.theme-light .form-row:hover{background:#fafbff}
+body.theme-light .f-num{color:#0f172a}
+body.theme-light .f-num:hover{background:rgba(79,70,229,.08)}
+body.theme-light .f-name{color:#334155} body.theme-light .f-name em{color:#94a3b8}
+body.theme-light .note-inp{background:#f8fafc;color:#0f172a;border-color:#d1d9e6}
+body.theme-light .note-inp:focus{border-color:#4f46e5;background:#fff}
+body.theme-light .note-inp::placeholder{color:#94a3b8}
+body.theme-light .note-inp.has-note{background:#ecfdf5;border-color:#6ee7b7;color:#065f46}
+body.theme-light .flag-btn{background:#f8fafc;border-color:#d1d9e6;color:#64748b}
+body.theme-light .flag-btn:hover,body.theme-light .flag-btn.flagged{border-color:#d97706;color:#b45309;background:#fffbeb}
+body.theme-light .fuzzy-hint{background:#ecfdf9;border-color:#99f6e4;color:#0f766e}
+body.theme-light .accept-btn{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+body.theme-light .rm-btn{border-color:#fecaca;color:#fca5a5}
+body.theme-light .rm-btn:hover{background:#fef2f2;border-color:#dc2626;color:#dc2626}
+body.theme-light .pinfo-card{background:#fff;border-color:#d1d9e6}
+body.theme-light .pinfo-title{color:#4f46e5}
+body.theme-light .pinfo-label{color:#1e293b;font-weight:800}
+body.theme-light .pinfo-inp{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .pinfo-inp::placeholder{color:#94a3b8}
+body.theme-light .pinfo-inp:focus{border-color:#4f46e5}
+body.theme-light .pinfo-preview{background:#f1f5f9;border-color:#d1d9e6;color:#334155}
+body.theme-light .pinfo-preview strong{color:#0f172a}
+body.theme-light .policy-entry{background:#f8fafc;border-color:#d1d9e6}
+body.theme-light .btn-add-policy{background:#eff6ff;border-color:#bfdbfe;color:#4f46e5}
+body.theme-light .disc-sec{background:#fffbeb;border-color:#fde68a}
+body.theme-light .disc-hd{background:#fef9c3;border-color:#fde68a}
+body.theme-light .disc-fn{color:#92400e} body.theme-light .disc-note{color:#475569}
+body.theme-light .disc-inp{background:#fffbeb;color:#92400e;border-color:#fde68a}
+body.theme-light .disc-inp::placeholder{color:#d97706}
+body.theme-light .disc-empty{color:#d97706}
+body.theme-light .sbs-hdr{background:#f8fafc}
+body.theme-light .sbs-row{border-color:#f1f5f9} body.theme-light .sbs-num{color:#0f172a} body.theme-light .sbs-name{color:#64748b}
+body.theme-light .fmt-pumaa{background:#eff6ff;color:#4338ca;border-color:#c7d2fe}
+body.theme-light .fmt-policy{background:#fffbeb;color:#b45309;border-color:#fde68a}
+body.theme-light .fmt-match{background:#ecfdf5;color:#059669;border-color:#a7f3d0}
+body.theme-light .year-diff{background:#fffbeb;color:#b45309;border-color:#fde68a}
+body.theme-light .ideas-panel{background:#fff;border-color:#d1d9e6}
+body.theme-light .idea-card{background:#f8fafc;border-color:#e2e8f0}
+body.theme-light .idea-title{color:#0f172a} body.theme-light .idea-desc{color:#475569}
+body.theme-light .empty-msg{color:#94a3b8}
+body.theme-light .pbadges .pb{background:#f8fafc;border-color:#d1d9e6;color:#334155}
+body.theme-light .pbadges .pb strong{color:#0f172a}
+body.theme-light .toast{background:#fff;border-color:#d1d9e6;color:#0f172a}
+body.theme-light .alert-box{background:#fef2f2;border-color:#fecaca;color:#dc2626}
+body.theme-light .detect-note{color:#334155} body.theme-light .detect-note .ok{color:#059669}
+body.theme-light .cheat-hud{background:rgba(255,255,255,.97);color:#4f46e5;border-color:#d1d9e6}
+/* light — header reset */
+body.theme-light .hdr-reset-btn{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.2);color:#dc2626}
+body.theme-light .hdr-reset-btn:hover{background:rgba(220,38,38,.12);border-color:#dc2626}
+/* light — unotes */
+body.theme-light .unotes-card{background:#fff;border-color:#d1d9e6}
+body.theme-light .unotes-title{color:#0f766e}
+body.theme-light .chip-wrap{background:rgba(15,118,110,.04);border-color:rgba(15,118,110,.2)}
+body.theme-light .chip-wrap:hover{border-color:#0f766e}
+body.theme-light .chip-insert{color:#0f766e}
+body.theme-light .chip-insert:hover{background:rgba(15,118,110,.1)}
+body.theme-light .chip-action-btn{border-color:rgba(15,118,110,.15)}
+body.theme-light .chip-new-btn{background:rgba(79,70,229,.05);border-color:rgba(79,70,229,.25);color:#4338ca}
+body.theme-light .chip-new-btn:hover{background:rgba(79,70,229,.1);border-color:#4338ca}
+body.theme-light .chip-editor-modal{background:#fff;border-color:#d1d9e6}
+body.theme-light .chip-editor-title{color:#0f172a}
+body.theme-light .chip-editor-label{color:#475569}
+body.theme-light .chip-editor-inp{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .chip-editor-inp:focus{border-color:#0f766e}
+body.theme-light .chip-editor-save{background:#ecfdf9;border-color:#99f6e4;color:#0f766e}
+body.theme-light .chip-editor-cancel{border-color:#d1d9e6;color:#64748b}
+body.theme-light .unotes-inp{background:#f8fafc;color:#0f172a;border-color:#b8c4d8}
+body.theme-light .unotes-inp:focus{border-color:#0f766e}
+body.theme-light .btn-add-note{background:#ecfdf9;border-color:#99f6e4;color:#0f766e}
+body.theme-light .btn-add-note:hover{background:#ccfbf1;border-color:#0f766e}
+body.theme-light .unote-row{background:#f0fdf9;border-color:#99f6e4}
+body.theme-light .unote-bullet{color:#0f766e}
+body.theme-light .unote-text{color:#334155}
+body.theme-light .unote-text:focus{color:#0f172a}
+body.theme-light .unotes-empty{color:#94a3b8}
+/* light — adisc */
+body.theme-light .adisc-panel{background:#fff;border-color:#d1d9e6}
+body.theme-light .adisc-hd{background:linear-gradient(135deg,#eff6ff,#fffbeb);border-color:#e2e8f0}
+body.theme-light .adisc-hd:hover{background:linear-gradient(135deg,#e0e7ff,#fef9c3)}
+body.theme-light .adisc-hd-title{background:linear-gradient(135deg,#4338ca,#b45309);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.theme-light .adisc-hd-sub{-webkit-text-fill-color:#64748b}
+body.theme-light .adisc-pill{background:linear-gradient(135deg,#eff6ff,#fffbeb);color:#4338ca;border-color:#bfdbfe}
+body.theme-light .adisc-row{border-color:#f1f5f9}
+body.theme-light .adisc-num{color:#0f172a}
+body.theme-light .adisc-name{color:#475569}
+body.theme-light .adisc-reason{background:#f8fafc;border-color:#e2e8f0}
+body.theme-light .adisc-reason-label{color:#334155}
+body.theme-light .adisc-score{background:#eff6ff;color:#4338ca;border-color:#bfdbfe}
+body.theme-light .adisc-accept-btn{background:#ecfdf5;border-color:#6ee7b7;color:#059669}
+body.theme-light .adisc-flag-btn{background:#fffbeb;border-color:#fde68a;color:#b45309}
+body.theme-light .adisc-dismiss-btn{background:#f8fafc;border-color:#d1d9e6;color:#64748b}
+/* light — f-name helpers */
+body.theme-light .f-name-src{color:#94a3b8}
+body.theme-light .f-name-none{color:#94a3b8}
+body.theme-light .f-name em{color:#94a3b8}
+
+/* ════ DIM MODE ══════════════════════════════════ */
+body.theme-dim{
+  --bg:#1a1f2e;--glass:rgba(255,255,255,.055);--glass2:rgba(255,255,255,.085);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#e2e8f0;--text2:#8899aa;--text3:#4a5568;
+  --indigo:#818cf8;--indigo2:#6366f1;--indigo3:#4f46e5;
+  --green:#34d399;--green2:#059669;--amber:#fbbf24;--amber2:#d97706;--red:#f87171;--teal:#2dd4bf;
+  background:linear-gradient(135deg,#1a1f2e 0%,#1e2435 100%);
+}
+body.theme-dim .cheat-hud{background:rgba(26,31,46,.96)}
+
+/* ════ DARK MODE ══════════════════════════════════ */
+/* (default :root tokens — no extra class needed,
+   but theme-dark makes it explicit) */
+body.theme-dark{
+  --bg:#0f1117;--glass:rgba(255,255,255,.035);--glass2:rgba(255,255,255,.06);
+  --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.15);
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#4b5e78;
+  --indigo:#818cf8;--indigo2:#6366f1;--indigo3:#4f46e5;
+  --green:#34d399;--green2:#059669;--green-lt:rgba(52,211,153,.1);--green-bd:rgba(52,211,153,.25);
+  --amber:#fbbf24;--amber2:#d97706;--amber-lt:rgba(251,191,36,.1);--amber-bd:rgba(251,191,36,.25);
+  --red:#f87171;--red-lt:rgba(248,113,113,.1);--red-bd:rgba(248,113,113,.25);
+  --teal:#2dd4bf;--teal-lt:rgba(45,212,191,.1);--teal-bd:rgba(45,212,191,.25);
+}
+
+@media print{.no-print{display:none!important}body,html{background:#fff;color:#000}
+  .card,.res-card,.stat{border:1px solid #ddd!important;box-shadow:none!important;background:#fff!important}
+  .note-inp{border:none!important;background:transparent!important;color:#000!important}}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}.slabel{display:none}
+  .ideas-grid,.sbs-wrap.open{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="theme-light">
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="hdr no-print">
+    <div class="hdr-logo">🛡️</div>
+    <div class="hdr-text">
+      <h1>RISCO · FormSync</h1>
+      <p>Match policy forms against PUMAA — spot gaps, extras &amp; discrepancies instantly</p>
+    </div>
+    <div class="hdr-right">
+      <button class="hdr-reset-btn no-print" onclick="resetAll()" title="Reset everything">↺ Reset</button>
+      <span class="hdr-clock" id="liveTime"></span>
+      <span class="ver-tag">v1.0</span>
+    </div>
+  </header>
+
+  <!-- STEPPER -->
+  <div class="stepper no-print">
+    <div class="snode active" id="sn1"><div class="scirc" id="sc1">1</div><span class="slabel">Upload PUMAA</span></div>
+    <div class="sline" id="sl1"></div>
+    <div class="snode" id="sn2"><div class="scirc" id="sc2">2</div><span class="slabel">Policy Forms</span></div>
+    <div class="sline" id="sl2"></div>
+    <div class="snode" id="sn3"><div class="scirc" id="sc3">3</div><span class="slabel">Results</span></div>
+  </div>
+
+  <div class="pinfo-card no-print" id="policyInfoCard">
+    <div class="pinfo-header">
+      <div class="pinfo-title">Previous Policy Number</div>
+      <button class="btn-add-policy" onclick="addPolicyEntry()">＋ Add Policy</button>
+    </div>
+    <div style="margin-bottom:.875rem">
+      <div class="pinfo-field" style="max-width:400px">
+        <span class="pinfo-label">Insured Name</span>
+        <input class="pinfo-inp" id="insuredNameInp" placeholder="e.g. Test Client 1" autocomplete="off" oninput="refreshPolicePreviews()">
+      </div>
+      <div class="pinfo-field" style="max-width:120px;margin-top:.625rem">
+        <span class="pinfo-label">Task #</span>
+        <input class="pinfo-inp" id="taskNumInp" placeholder="e.g. 1" autocomplete="off">
+      </div>
+    </div>
+    <div class="policy-entries" id="policyEntries"></div>
+    <div class="pinfo-previews" id="piPreviews"></div>
+  </div>
+
+  <!-- UNDERWRITING NOTES -->
+  <div class="unotes-card no-print" id="unotesCard">
+    <div class="unotes-header">
+      <div class="unotes-title">📝 Underwriting Notes</div>
+      <span style="font-size:11px;color:var(--text3)">Click ＋ to insert · ✎ to edit template · ✕ to remove template</span>
+    </div>
+    <div class="unotes-chips" id="unotesChips"></div>
+    <div class="unotes-input-row">
+      <input class="unotes-inp" id="unotesCustomInp" placeholder="Type a custom note and press Enter or Add…"
+        onkeydown="if(event.key==='Enter'){addUNoteCustom();event.preventDefault()}">
+      <button class="btn-add-note" onclick="addUNoteCustom()">＋ Add</button>
+    </div>
+    <div class="unotes-list" id="unotesList">
+      <div class="unotes-empty" id="unotesEmpty">No notes yet — click a quick button above or type a custom note.</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: PUMAA HTML -->
+  <div class="card active" id="card1">
+    <div class="cglow"></div>
+    <div class="chead">
+      <div class="cicon">📄</div>
+      <div><div class="ctitle">Upload the PUMAA Endorsements page</div>
+      <div class="csub">Save the Endorsements page from PUMAA (Ctrl + S → Webpage Complete) then drop it here</div></div>
+    </div>
+    <div class="upload-zone" id="dropZone">
+      <input type="file" id="htmlFile" accept=".html,.htm" onchange="handleFile(this)">
+      <span class="uz-emoji" id="uzEmoji">📥</span>
+      <div class="uz-label" id="uzLabel">Click to choose or drag &amp; drop here</div>
+      <div class="uz-hint" id="uzHint">Accepts the saved PUMAA Endorsements HTML file</div>
+    </div>
+    <div id="alert1" class="alert-box">⚠️ No forms found. Make sure you saved the correct PUMAA page (Endorsements step).</div>
+    <div id="parseBadges" class="pbadges" style="display:none"></div>
+  </div>
+
+  <!-- STEP 2: POLICY FORMS (PDF or Manual) -->
+  <div class="card" id="card2">
+    <div class="cglow"></div>
+    <div class="chead">
+      <div class="cicon">📋</div>
+      <div><div class="ctitle">Policy form list</div>
+      <div class="csub">Upload the policy PDF to auto-extract forms, or paste the form list manually</div></div>
+    </div>
+
+    <!-- Input mode tabs -->
+    <div class="s2-tabs no-print">
+      <button class="s2-tab active" id="tab-manual" onclick="switchTab('manual')">✏️ Paste Manually</button>
+      <button class="s2-tab" id="tab-pdf" onclick="switchTab('pdf')">📤 Upload Policy PDF</button>
+    </div>
+
+    <!-- Manual panel -->
+    <div class="s2-panel open" id="panel-manual">
+      <textarea id="policyText" oninput="onPolicyInput()" placeholder="Paste form numbers here. Accepted formats:
+
+  HO 00 03 10 00    Homeowners 3 - Special Form
+  - (RSC WE 01 2023) War and Cyber War Exclusion
+  - (HO 04 96 04 91) No Section II - Liability Coverage
+  LMA 3201, RSC CP 09 2021"></textarea>
+    </div>
+
+    <!-- PDF panel -->
+    <div class="s2-panel" id="panel-pdf">
+      <div class="pdf-zone" id="pdfZone">
+        <input type="file" id="pdfFile" accept=".pdf" onchange="handlePDF(this)">
+        <span class="uz-emoji" id="pdfEmoji">📤</span>
+        <div class="uz-label" id="pdfLabel">Click to choose or drag &amp; drop PDF</div>
+        <div class="uz-hint">Accepts the policy document PDF — form numbers are extracted automatically</div>
+      </div>
+      <div class="pdf-status" id="pdfStatus"></div>
+      <!-- Editable textarea shows extracted text for manual correction -->
+      <div id="pdfExtracted" style="display:none;margin-top:.75rem">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600">
+          ✓ Extracted text — edit if needed, then click Compare Forms:
+        </div>
+        <textarea id="policyText2" oninput="onPolicyInput2()" style="min-height:100px" placeholder="Extracted form numbers appear here…"></textarea>
+        <div class="detect-note" id="detectNote2"><span class="ok">✓</span><span id="detectText2"></span></div>
+      </div>
+    </div>
+
+    <div class="detect-note" id="detectNote"><span class="ok">✓</span><span id="detectText"></span></div>
+    <div class="hint-box">💡 Parenthesised forms like <strong>(RSC WE 01 2023)</strong> are auto-extracted. When format in policy differs from PUMAA, both are shown side by side with a flag to mark discrepancy.</div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar no-print">
+    <button class="btn-primary" id="runBtn" onclick="runComparison()" disabled>▶&nbsp; Compare Forms</button>
+    <button class="btn-sec" onclick="resetAll()">↺ Reset</button>
+    <button class="btn-sbs" id="sbsBtn" onclick="toggleSBS()" style="display:none">⇄ Side-by-Side</button>
+    <span class="status-pill" id="statusPill">Upload a PUMAA file and add policy forms to begin</span>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsArea" style="display:none">
+    <div id="printInsuredHdr" style="display:none;font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px;font-family:'Outfit',sans-serif;padding:8px 0 10px;border-bottom:2px solid #e2e8f0"></div>
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="res-card">
+      <div class="res-search no-print">
+        <div class="srch-wrap">
+          <input class="srch-inp" placeholder="Filter form numbers or names…" oninput="filterRows(this.value)">
+        </div>
+      </div>
+
+      <!-- Categorized view (default) -->
+      <div id="sectionsWrap"></div>
+
+      <!-- Side-by-side view (toggle) -->
+      <div class="sbs-wrap" id="sbsWrap">
+        <div class="sbs-panel">
+          <div class="sbs-hdr" style="color:var(--indigo)">🛡 PUMAA — System Generated</div>
+          <div id="sbsLeft"></div>
+        </div>
+        <div class="sbs-panel">
+          <div class="sbs-hdr" style="color:var(--text2)">📋 Policy Forms</div>
+          <div id="sbsRight"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auto-Detected Conflicts -->
+    <div class="adisc-panel no-print" id="autoDiscSection" style="display:none">
+      <div class="adisc-hd" onclick="toggleSec('autoDiscBody','autoDiscArr')">
+        <div class="adisc-hd-icon">⚡</div>
+        <span class="adisc-hd-title">Auto-Detected Conflicts
+          <span class="adisc-hd-sub">— Forms still shown in sections above · resolve each here</span>
+        </span>
+        <span class="adisc-pill" id="autoDiscPill">0</span>
+        <span class="sarr open" id="autoDiscArr">▶</span>
+      </div>
+      <div id="autoDiscBody"></div>
+    </div>
+
+    <!-- Discrepancy section -->
+    <div class="disc-sec no-print" id="discSection" style="display:none">
+      <div class="disc-hd" onclick="toggleSec('discBody','discArr')">
+        <div class="disc-hd-icon">⚡</div>
+        <span class="disc-hd-title">PUMAA vs Policy — Form Discrepancy<span class="disc-hd-sub">— Same form, different code or name</span></span>
+        <span class="disc-pill" id="discCount">0</span>
+        <span class="sarr open" id="discArr">▶</span>
+      </div>
+      <div id="discBody">
+        <div class="disc-col-hdr"><span>Form / Name</span><span>Discrepancy Note</span></div>
+        <div id="discRows"><div class="disc-empty">No discrepancies flagged yet — use ⚠ Flag on any row above</div></div>
+      </div>
+    </div>
+
+    <!-- Export -->
+    <div class="export-row no-print">
+      <button class="btn-sec" onclick="doCopy()">📋 Copy Full Report</button>
+      <button class="btn-list" onclick="copyFormattedList()">📄 Copy Formatted List</button>
+      <button class="btn-sec" onclick="doCSV()">⬇ Download CSV</button>
+      <button class="btn-sec" onclick="window.print()">🖨 Print / PDF</button>
+    </div>
+  </div>
+
+  <!-- IDEAS PANEL -->
+  <div class="ideas-panel no-print" style="margin-top:2.5rem">
+    <div class="ideas-hd" onclick="toggleIdeas()">
+      <div class="ideas-hd-icon">💡</div>
+      <span class="ideas-hd-title">Roadmap &amp; Improvement Ideas</span>
+      <span class="sarr" id="ideasArr">▶</span>
+    </div>
+    <div class="ideas-body" id="ideasBody">
+      <div class="ideas-grid">
+        <!-- BUILT highlight row -->
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Policy PDF Direct Upload</div>
+          <div class="idea-desc">Upload the policy PDF — only the Forms &amp; Endorsements block is extracted automatically.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Year-Aware Fuzzy Matching</div>
+          <div class="idea-desc">Near-matches across year versions (2024 vs 2025) detected automatically with one-click Accept.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Side-by-Side View</div>
+          <div class="idea-desc">Toggle ⇄ to see PUMAA and policy forms in two panels with colour-coded match indicators.</div>
+        </div>
+        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Auto-Suggest Discrepancy Notes</div>
+          <div class="idea-desc">Flagging a format-mismatch row pre-fills the discrepancy note with exact PUMAA vs Policy formats.</div>
+        </div>
+
+        <!-- NEW GAME-CHANGING IDEAS -->
+        <div class="idea-card">
+          <span class="idea-tag tag-smart">🧠 AI</span>
+          <div class="idea-title">Smart Form Validation Engine</div>
+          <div class="idea-desc">Cross-check form combinations for known conflicts (e.g. two mutually exclusive exclusions on the same policy). Flag illogical pairings before binding — catches underwriting errors no one else catches.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-feature">🔄 Workflow</span>
+          <div class="idea-title">Policy Version Diff</div>
+          <div class="idea-desc">Upload two policy PDFs (renewal vs prior year) and instantly see which forms were added, removed, or changed — a full line-by-line endorsement diff that takes seconds instead of 30 minutes.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-data">📊 Data</span>
+          <div class="idea-title">Required Forms Rule Engine</div>
+          <div class="idea-desc">Define rules per state and policy type: "HO3 in Massachusetts must always include HO 01 20." Automatically alerts if a mandatory form is missing from the policy. Eliminates E&amp;O exposure.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-smart">⚡ Speed</span>
+          <div class="idea-title">Batch Policy Processing</div>
+          <div class="idea-desc">Upload 10 policy PDFs at once against a single PUMAA page. Get a summary table showing all missing and extra forms across all policies — one click to review the whole book.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-ux">🔗 Share</span>
+          <div class="idea-title">One-Click Shareable Report</div>
+          <div class="idea-desc">Generate a self-contained HTML snapshot that preserves all results, notes, flags and discrepancies. Share via email or link — the recipient sees everything exactly as you left it, no files needed.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-feature">🕐 History</span>
+          <div class="idea-title">Comparison History &amp; Audit Log</div>
+          <div class="idea-desc">Auto-save every comparison to browser storage with timestamp and policy number. Reopen any past review, see what was flagged, what notes were added — full audit trail for compliance and E&amp;O defence.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-smart">🏷 Smart</span>
+          <div class="idea-title">Form Description Normaliser</div>
+          <div class="idea-desc">When "Sanctions Suspension Clause" and "Sanctions Limitation Clause" appear on the same policy, detect that they may be duplicates or conflicting and flag for UW review. Stop silently passing bad policies.</div>
+        </div>
+        <div class="idea-card">
+          <span class="idea-tag tag-data">📋 Export</span>
+          <div class="idea-title">RISCO Email Draft Generator</div>
+          <div class="idea-desc">After comparison, generate a ready-to-send email to the retail agent listing missing forms, discrepancies and required follow-up — formatted, professional, copy-paste ready in one click.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.app -->
+
+<div class="cheat-hud" id="cheatHud"></div>
+<div class="toast-area" id="toastArea"></div>
+
+<script>
+/* ════════════════════════════════════════════════
+   PDF.JS INIT
+════════════════════════════════════════════════ */
+if(typeof pdfjsLib !== 'undefined'){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+/* ════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════ */
+let pumaaData     = {sys:[], uw:[], quoteNum:'', insured:''};
+let notes         = {};
+let discrepancies = {};
+let lastResult    = {c1:[], c2:[], c3:[], c4:[]};
+let htmlLoaded    = false;
+let policyLoaded  = false;
+let activeTab     = 'manual';
+let sbsOpen       = false;
+let autoDiscs     = [];
+let uNoteCounter  = 0;
+
+// Default chip templates — stored in memory, user can add/edit/remove
+let chipTemplates = [
+  {id:'c1', label:'Hydrant Distance',    text:'Distance to Hydrant (in feet): Not answered in policy document — entered [X] ft.'},
+  {id:'c2', label:'Fire Station Distance', text:'Distance to Fire Station (in miles): Not answered — entered [X] miles based on Google Maps ([Station Name])'},
+  {id:'c3', label:'Alarms',             text:'Fire/Burglar Alarms: Not answered in application and "No" in UW document — selected "Local Burglar"'},
+  {id:'c4', label:'Fuel Tank',          text:'Fuel tank location (Primary): Not answered in application — selected "Above Ground"'},
+  {id:'c5', label:'Property Check',     text:'How frequently is property checked: Could not determine — selected "Weekly"'},
+  {id:'c6', label:'Occupation',         text:'Named Insured Occupation & Employer: No information provided — entered as "Self Employed"'},
+  {id:'c7', label:'Date of Birth',      text:'Named Insured Date of Birth: No information provided — entered as [MM-DD-YYYY]'},
+  {id:'c8', label:'Mandatory Fields',   text:'All mandatory fields not answered or not listed in the policy document have been recorded as No / None / Not Applicable'},
+];
+let chipIdCounter = 9;
+
+/* ════════════════════════════════════════════════
+   UTILS
+════════════════════════════════════════════════ */
+function norm(s){ return (s||'').toUpperCase().replace(/[\s\/\.\-\(\)]/g,'').trim(); }
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg, type='ok', ms=3500){
+  const a=document.getElementById('toastArea'), t=document.createElement('div');
+  t.className='toast '+type;
+  t.textContent = {ok:'✓',err:'✕',warn:'⚠',info:'ℹ'}[type]+' '+msg;
+  a.appendChild(t);
+  setTimeout(()=>{ t.style.animation='tout .3s ease forwards'; setTimeout(()=>t.remove(),320); }, ms);
+}
+
+/* ════════════════════════════════════════════════
+   LIVE CLOCK
+════════════════════════════════════════════════ */
+(function tick(){
+  const el=document.getElementById('liveTime');
+  if(el) el.textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  setTimeout(tick,15000);
+})();
+
+// Init chip templates on load
+renderChips();
+
+// Print — insured name header
+window.addEventListener('beforeprint',()=>{
+  const hdr=document.getElementById('printInsuredHdr'); if(!hdr) return;
+  const insured=getInsuredName(); const q=pumaaData.quoteNum||'';
+  const parts=[insured&&`Insured: ${insured}`,q&&`Quote: ${q}`,`Date: ${new Date().toLocaleDateString()}`].filter(Boolean);
+  hdr.textContent=parts.join('   ·   ');
+  hdr.style.display=parts.length?'block':'none';
+});
+window.addEventListener('afterprint',()=>{
+  const hdr=document.getElementById('printInsuredHdr'); if(hdr){hdr.textContent='';hdr.style.display='none';}
+});
+
+/* ════════════════════════════════════════════════
+   CHEAT CODE — type LIGHT, DARK, or Dim (not in inputs)
+════════════════════════════════════════════════ */
+const THEMES = ['theme-light','theme-dark','theme-dim'];
+const THEME_CHEATS = { 'LIGHT':'theme-light', 'DARK':'theme-dark', 'DIM':'theme-dim' };
+const THEME_LABELS = { 'theme-light':'LIGHT mode','theme-dark':'DARK mode','theme-dim':'Dim mode' };
+const MAX_CHEAT = Math.max(...Object.keys(THEME_CHEATS).map(k=>k.length));
+let cbuf='', ctmr=null;
+const chud=document.getElementById('cheatHud');
+document.addEventListener('keydown', e=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)) return;
+  cbuf += e.key.toUpperCase();
+  if(cbuf.length > MAX_CHEAT) cbuf = cbuf.slice(-MAX_CHEAT);
+  const match = Object.keys(THEME_CHEATS).find(k => k === cbuf);
+  const partial = Object.keys(THEME_CHEATS).some(k => k.startsWith(cbuf) && cbuf.length > 0);
+  if(partial){ chud.textContent='[ '+cbuf+' ]'; chud.classList.add('show'); }
+  else { cbuf=''; chud.classList.remove('show'); }
+  if(match){
+    const cls = THEME_CHEATS[match];
+    cbuf=''; chud.classList.remove('show');
+    THEMES.forEach(t => document.body.classList.remove(t));
+    document.body.classList.add(cls);
+    showToast(THEME_LABELS[cls]+' activated','info',2500);
+  }
+  clearTimeout(ctmr);
+  ctmr=setTimeout(()=>{ cbuf=''; chud.classList.remove('show'); }, 2000);
+});
+/* ════════════════════════════════════════════════
+   PREVIOUS POLICY NUMBER — auto-fill + preview
+════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   DATE HANDLING — accepts any pasted/typed format
+   MM/DD/YYYY · MM-DD-YYYY · YYYY-MM-DD · MMM DD YYYY
+   04/03/2026 · 2026-04-03 · April 3 2026 · Apr 3, 2026
+════════════════════════════════════════════════ */
+
+function parseAnyDate(str){
+  if(!str||!str.trim()) return null;
+  str = str.trim();
+
+  const months = {jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+    january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
+
+  // MM/DD/YYYY or MM-DD-YYYY
+  let m = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if(m) return new Date(+m[3], +m[1]-1, +m[2]);
+
+  // YYYY-MM-DD  (ISO)
+  m = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3]);
+
+  // MMM DD, YYYY  or  MMM DD YYYY  (Apr 3, 2026)
+  m = str.match(/^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+  if(m){
+    const mo = months[m[1].toLowerCase().slice(0,9)];
+    if(mo !== undefined) return new Date(+m[3], mo, +m[2]);
+  }
+
+  // DD MMM YYYY  (3 April 2026)
+  m = str.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/);
+  if(m){
+    const mo = months[m[2].toLowerCase().slice(0,9)];
+    if(mo !== undefined) return new Date(+m[3], mo, +m[1]);
+  }
+
+  // Native Date fallback
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function fmtDateObj(d){
+  if(!d) return '';
+  const mo  = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  const yr  = d.getFullYear();
+  return `${mo}/${day}/${yr}`;
+}
+
+// Keep fmtDate for ISO strings from old code (YYYY-MM-DD)
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = parseAnyDate(iso);
+  return d ? fmtDateObj(d) : iso;
+}
+
+function onEffDateInput(){
+  // Legacy stub — no-op, entry-specific handlers used now
+}
+function autoFillExpiry(){ onEffDateInput(); }
+function updatePolicyPreview(){ if(typeof refreshPolicePreviews==='function') refreshPolicePreviews(); }
+
+/* ════════════════════════════════════════════════
+   MULTI-ENTRY PREVIOUS POLICY NUMBER
+════════════════════════════════════════════════ */
+let policyEntryCount = 0;
+
+function addPolicyEntry(){
+  const id = ++policyEntryCount;
+  const container = document.getElementById('policyEntries');
+  const entry = document.createElement('div');
+  entry.className = 'policy-entry';
+  entry.id = 'pe_'+id;
+  const showRemove = container.children.length > 0;
+  entry.innerHTML = `
+    <div class="policy-entry-fields">
+      <div class="pinfo-field">
+        <span class="pinfo-label">Policy Number:</span>
+        <input class="pinfo-inp pi-num" id="piNum_${id}" placeholder="e.g. RIB54833"
+          oninput="refreshPolicePreviews()" autocomplete="off">
+      </div>
+      <div class="pinfo-field">
+        <span class="pinfo-label">Effective Date:</span>
+        <input class="pinfo-inp pi-eff" id="piEff_${id}" type="text"
+          placeholder="MM/DD/YYYY"
+          oninput="onEntryEffDate(${id})" onpaste="setTimeout(()=>onEntryEffDate(${id}),10)"
+          autocomplete="off">
+      </div>
+      <div class="pinfo-field">
+        <span class="pinfo-label">Expiration Date:</span>
+        <input class="pinfo-inp pi-exp" id="piExp_${id}" type="text"
+          placeholder="MM/DD/YYYY"
+          oninput="refreshPolicePreviews()" onpaste="setTimeout(refreshPolicePreviews,10)"
+          autocomplete="off">
+      </div>
+      ${showRemove
+        ? `<button class="btn-rm-entry" onclick="removePolicyEntry(${id})" title="Remove this entry">✕</button>`
+        : '<div></div>'}
+    </div>`;
+  container.appendChild(entry);
+  refreshPolicePreviews();
+}
+
+function removePolicyEntry(id){
+  const el = document.getElementById('pe_'+id);
+  if(!el) return;
+  el.style.transition='opacity .2s,max-height .25s';
+  el.style.opacity='0';
+  setTimeout(()=>{ el.remove(); refreshPolicePreviews(); }, 220);
+}
+
+function onEntryEffDate(id){
+  const effEl = document.getElementById('piEff_'+id);
+  const expEl = document.getElementById('piExp_'+id);
+  if(!effEl||!expEl) return;
+  const d = parseAnyDate(effEl.value.trim());
+  if(d && !isNaN(d)){
+    const exp = new Date(d); exp.setFullYear(exp.getFullYear()+1);
+    expEl.value = fmtDateObj(exp);
+  }
+  refreshPolicePreviews();
+}
+
+function refreshPolicePreviews(){
+  const previews = document.getElementById('piPreviews'); if(!previews) return;
+  previews.innerHTML = '';
+  const insured = getInsuredName();
+  document.querySelectorAll('.policy-entry').forEach(entry=>{
+    const num=entry.querySelector('.pi-num')?.value.trim()||'';
+    const effRaw=entry.querySelector('.pi-eff')?.value.trim()||'';
+    const expRaw=entry.querySelector('.pi-exp')?.value.trim()||'';
+    if(!num&&!effRaw&&!expRaw&&!insured) return;
+    const effD=parseAnyDate(effRaw), expD=parseAnyDate(expRaw);
+    const effStr=effD?fmtDateObj(effD):effRaw, expStr=expD?fmtDateObj(expD):expRaw;
+    const insuredPart=insured?`Insured: ${insured}     `:'';
+    const copyText=`${insuredPart}Policy Number: ${num||'—'}     Term: ${effStr||'—'} - ${expStr||'—'}`;
+    const prev=document.createElement('div'); prev.className='pinfo-preview'; prev.style.display='block'; prev.title='Click to copy';
+    prev.innerHTML=`${insured?`<strong>Insured:</strong> ${escHtml(insured)}&emsp;`:''}<strong>Policy Number:</strong> ${escHtml(num||'—')}&emsp;<strong>Term:</strong> ${escHtml(effStr||'—')} – ${escHtml(expStr||'—')}<span class="copy-hint">⎘ click to copy</span>`;
+    prev.addEventListener('click',function(){ navigator.clipboard.writeText(copyText).then(()=>{ this.style.background='rgba(52,211,153,.18)'; showToast('Copied!','ok',1800); setTimeout(()=>this.style.background='',700); }).catch(()=>showToast('Copy failed','err')); });
+    previews.appendChild(prev);
+  });
+}
+
+function getAllPolicyInfoText(){
+  let lines=[];
+  document.querySelectorAll('.policy-entry').forEach(entry=>{
+    const num=entry.querySelector('.pi-num')?.value.trim()||'';
+    const effRaw=entry.querySelector('.pi-eff')?.value.trim()||'';
+    const expRaw=entry.querySelector('.pi-exp')?.value.trim()||'';
+    if(!num&&!effRaw&&!expRaw) return;
+    const effD=parseAnyDate(effRaw),expD=parseAnyDate(expRaw);
+    lines.push(`  Policy Number: ${num||'—'}   Term: ${effD?fmtDateObj(effD):effRaw||'—'} – ${expD?fmtDateObj(expD):expRaw||'—'}`);
+  });
+  return lines.length ? 'Previous Policy Number\n'+lines.join('\n')+'\n' : '';
+}
+
+function getPolicyInfoText(){ return getAllPolicyInfoText(); }
+
+function resetPolicyInfo(){
+  document.getElementById('policyEntries').innerHTML='';
+  document.getElementById('piPreviews').innerHTML='';
+  policyEntryCount=0;
+  addPolicyEntry();
+}
+
+
+function switchTab(t){
+  activeTab=t;
+  document.getElementById('panel-manual').classList.toggle('open', t==='manual');
+  document.getElementById('panel-pdf').classList.toggle('open', t==='pdf');
+  document.getElementById('tab-manual').classList.toggle('active', t==='manual');
+  document.getElementById('tab-pdf').classList.toggle('active', t==='pdf');
+  // Sync detect note visibility
+  checkRunnable();
+}
+
+/* ════════════════════════════════════════════════
+   PDF EXTRACTION — only "FORMS AND ENDORSEMENTS" section
+════════════════════════════════════════════════ */
+async function handlePDF(input){
+  const file = input.files[0];
+  if(!file) return;
+  const status = document.getElementById('pdfStatus');
+  status.style.display='block';
+  status.innerHTML='<span class="pdf-spinner"></span> Reading PDF…';
+
+  try{
+    if(typeof pdfjsLib === 'undefined') throw new Error('PDF.js not loaded — try the Manual tab instead');
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+
+    // ── Pass 1: collect all lines from all pages ─────────────────
+    let allLines = [];
+    for(let i=1; i<=pdf.numPages; i++){
+      const page    = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      // Group items into lines by Y coordinate (items with same Y = same line)
+      const byY = {};
+      content.items.forEach(item=>{
+        const y = Math.round(item.transform[5]);
+        if(!byY[y]) byY[y]=[];
+        byY[y].push(item.str);
+      });
+      // Sort Y descending (PDF Y grows upward), join each line
+      Object.keys(byY).sort((a,b)=>b-a).forEach(y=>{
+        const line = byY[y].join(' ').replace(/\s+/g,' ').trim();
+        if(line) allLines.push(line);
+      });
+    }
+
+    // ── Pass 2: find the FORMS AND ENDORSEMENTS block ────────────
+    // Look for a line containing those exact words (case-insensitive)
+    const startRe = /FORMS?\s+AND\s+ENDORSEMENTS?/i;
+    // End markers: any all-caps section heading that is NOT a form line,
+    // or a line that is clearly not a form (long sentence, no parentheses)
+    const endRe = /^(ADDITIONAL\s+INTEREST|PREMIUM|NOTICE|SECTION|DECLARATIONS?|NAMED\s+INSURED|RETAIL|POLICY\s+PERIOD|March|April|May|June|July|August|September|October|November|December|January|February|Date\s+Signature)/i;
+
+    let inBlock = false;
+    let formLines = [];
+    let consecutiveNonForm = 0;
+
+    for(const line of allLines){
+      if(!inBlock){
+        if(startRe.test(line)){ inBlock=true; continue; }
+      } else {
+        // A form line looks like: (FORMNUM) Description  OR  - (FORMNUM) Description
+        const isFormLine = /^\s*[\-\•]?\s*\(/.test(line) || /^\s*\([A-Z0-9]/.test(line);
+        // Stop if we hit a clear section break
+        if(endRe.test(line)) break;
+        // Also stop after 5 consecutive non-form lines (catches end of block)
+        if(isFormLine){
+          consecutiveNonForm=0;
+          formLines.push(line.trim());
+        } else {
+          consecutiveNonForm++;
+          if(consecutiveNonForm>5) break;
+          // Include short bridging lines (page numbers etc. are ≤4 chars — skip those)
+          if(line.length>4) formLines.push(line.trim());
+        }
+      }
+    }
+
+    if(!formLines.length){
+      // Fallback: paste everything if block not found
+      status.innerHTML='⚠ "FORMS AND ENDORSEMENTS" section not found — showing full text. Edit as needed.';
+      const fullText = allLines.join('\n');
+      document.getElementById('policyText2').value = fullText;
+    } else {
+      status.style.display='none';
+      document.getElementById('policyText2').value = formLines.join('\n');
+    }
+
+    document.getElementById('pdfExtracted').style.display='block';
+    document.getElementById('pdfEmoji').textContent='✅';
+    document.getElementById('pdfLabel').textContent=file.name+' — '+formLines.length+' lines extracted';
+    document.getElementById('pdfZone').classList.add('loaded');
+    onPolicyInput2();
+    showToast(formLines.length
+      ? `✓ Extracted ${formLines.length} form lines from PDF`
+      : 'Full text extracted — trim as needed');
+  } catch(err){
+    status.innerHTML='⚠ '+err.message;
+    showToast('PDF extraction failed: '+err.message,'err',5000);
+  }
+}
+
+function onPolicyInput2(){
+  const raw = document.getElementById('policyText2').value;
+  const forms = extractPolicyForms(raw);
+  const el=document.getElementById('detectNote2'), dt=document.getElementById('detectText2');
+  if(forms.length>0){
+    el.style.display='flex';
+    dt.textContent=forms.length+' form number'+(forms.length!==1?'s':'')+' detected';
+    policyLoaded=true;
+  } else {
+    el.style.display='none'; policyLoaded=false;
+  }
+  checkRunnable();
+}
+
+/* ════════════════════════════════════════════════
+   PUMAA HTML PARSER  — proven accurate version
+════════════════════════════════════════════════ */
+function parseHTMLContent(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const res={sys:[],uw:[],quoteNum:'',insured:''};
+  const ft=doc.querySelector('.flowtab');
+  if(ft){
+    res.quoteNum=(ft.childNodes[0]?.textContent||'').trim();
+    res.insured=(ft.querySelector('.text')?.textContent||'').trim();
+  }
+  doc.querySelectorAll('.card-body').forEach(cb=>{
+    const sub=cb.querySelector('.subtitle'); if(!sub) return;
+    const t=sub.textContent.toLowerCase();
+    const isSys=t.includes('system generated')||t.includes('system-generated');
+    const isUW=t.includes('underwriter');
+    if(!isSys&&!isUW) return;
+    cb.querySelectorAll('.endrosment-list').forEach(row=>{
+      const lbl=row.querySelector('.container1');
+      const nameEl=row.querySelector('.col-form-label a')||row.querySelector('.col-form-label');
+      if(!lbl) return;
+      const cl=lbl.cloneNode(true); cl.querySelectorAll('input,span').forEach(e=>e.remove());
+      const num=cl.textContent.replace(/\s+/g,' ').trim();
+      const desc=(nameEl?.textContent||'').replace(/\s+/g,' ').trim();
+      if(!num||num.length<2) return;
+      if(isSys) res.sys.push({num,desc});
+      else if(isUW) res.uw.push({num,desc});
+    });
+  });
+  return res;
+}
+
+/* ════════════════════════════════════════════════
+   FILE HANDLER (PUMAA HTML)
+════════════════════════════════════════════════ */
+function handleFile(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const parsed=parseHTMLContent(e.target.result);
+    document.getElementById('alert1').style.display='none';
+    if(!parsed.sys.length&&!parsed.uw.length){
+      document.getElementById('alert1').style.display='block';
+      showToast('No forms found — wrong PUMAA page?','err'); return;
+    }
+    pumaaData=parsed; htmlLoaded=true;
+    renderParseBadges(parsed,file.name); advanceStep(1); checkRunnable();
+    showToast('Loaded '+(parsed.sys.length+parsed.uw.length)+' forms from PUMAA');
+  };
+  reader.onerror=()=>showToast('Could not read file','err');
+  reader.readAsText(file);
+}
+
+function renderParseBadges(d,fname){
+  const pb=document.getElementById('parseBadges'); pb.style.display='flex';
+  pb.innerHTML=`<div class="pb"><span class="dot dot-b"></span><strong>${d.sys.length}</strong> system generated</div>
+    <div class="pb"><span class="dot dot-a"></span><strong>${d.uw.length}</strong> underwriter choice</div>
+    <div class="pb"><span class="dot dot-g"></span>${escHtml(fname)}${d.quoteNum?' · '+escHtml(d.quoteNum):''}</div>`;
+  document.getElementById('uzEmoji').textContent='✅';
+  document.getElementById('uzLabel').textContent='File loaded — drop another to replace';
+  document.getElementById('uzHint').textContent=fname;
+  document.getElementById('dropZone').classList.add('loaded');
+}
+
+/* ════════════════════════════════════════════════
+   POLICY FORM PARSER — proven accurate from v3
+   ADDED: capture actual policy format for dual display
+════════════════════════════════════════════════ */
+function extractPolicyForms(raw){
+  if(!raw.trim()) return [];
+  const sysMap={}, uwMap={};
+  pumaaData.sys.forEach(f=> sysMap[norm(f.num)]=f);
+  pumaaData.uw.forEach( f=> uwMap[ norm(f.num)]=f);
+  const found=[], seen=new Set();
+
+  // tryAdd(candidate, policyFormat)
+  // candidate = what to look up (may be PUMAA canonical or policy raw)
+  // policyFormat = how it actually appeared in the policy text
+  function tryAdd(candidate, policyFmt, policyDesc){
+    const c=(candidate||'').replace(/\s+/g,' ').trim();
+    if(!c||c.length<2) return;
+    const k=norm(c);
+    if(k.length<2||seen.has(k)) return;
+    seen.add(k);
+    const pRaw=(policyFmt||c).replace(/\s+/g,' ').trim();
+    const pd=(policyDesc||'').replace(/\s+/g,' ').trim();
+    if(sysMap[k])            found.push({policyRaw:pRaw,num:sysMap[k].num,desc:sysMap[k].desc,policyDesc:pd,src:'sys'});
+    else if(uwMap[k])        found.push({policyRaw:pRaw,num:uwMap[k].num, desc:uwMap[k].desc, policyDesc:pd,src:'uw'});
+    else if(/[0-9]/.test(k)) found.push({policyRaw:pRaw,num:c,desc:'',policyDesc:pd,src:'unknown'});
+  }
+
+  // PASS 1 — Match every known PUMAA form number.
+[...pumaaData.sys,...pumaaData.uw].forEach(f=>{
+    const esc=f.num.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/\s+/g,'[\\s\\-\\.]*');
+    const re=new RegExp('(?<![A-Z0-9])('+esc+')(?![A-Z0-9])','i');
+    const match=re.exec(raw);
+    if(!match) return;
+    const after=raw.slice(match.index+match[0].length);
+    if(/^ +[A-Z]{2,}/.test(after)) return;
+    const lineAfter=after.split(/[\r\n]/)[0].replace(/^[\s\-–—]+/,'').trim().slice(0,100);
+    tryAdd(f.num,match[1],lineAfter);
+});
+
+  // PASS 2 — Extract from parentheses: (RSC WE 01 2023) Description Here
+  const pr=/\(\s*([A-Z0-9][A-Z0-9\s\-\.\/]{1,40}?)\s*\)\s*([^\n\r\(]{0,100})?/gi; let m;
+  while((m=pr.exec(raw))!==null){
+    const descAfter=(m[2]||'').replace(/^[\s\-–—·]+/,'').replace(/\s+/g,' ').trim();
+    tryAdd(m[1],m[1],descAfter);
+  }
+
+  // PASS 3 — Line-by-line extraction (exact logic from proven v3)
+  raw.split(/[\r\n]+/).forEach(line=>{
+    const stripped=line.replace(/^[\s\-\•\*\·]+/,'').trim();
+    const chunks=stripped.split(/\s{2,}|\t|,/);
+    chunks.forEach((chunk,ci)=>{
+      let c=chunk.replace(/^[\s\-\(\)]+/,'').trim();
+      if(c.includes(')')){
+        const bp=c.match(/^([A-Z0-9][A-Z0-9\s\-\.\/]{0,35}?)\s*\)/i);
+        if(bp){ tryAdd(bp[1].trim(),bp[1].trim()); return; }
+      }
+      c=c.replace(/[\s\(\)\-]+$/,'').trim();
+      if(c.length<3||c.length>50) return;
+      if(!/[A-Z0-9]/i.test(c)) return;
+      const k=norm(c);
+      if(seen.has(k)) return;
+      const nxt=(chunks[ci+1]||'').trim();
+      const pDesc=nxt.length>2&&!/^[A-Z0-9]{2,}[\s\-][0-9]/.test(nxt)?nxt:'';
+      if(sysMap[k]||uwMap[k]){ tryAdd(c,c,pDesc); return; }
+      if(c.match(/^[A-Z0-9]/i)&&c.match(/[0-9]/)&&!c.match(/^[a-z][a-z\s]{5,}$/)) tryAdd(c,c,pDesc);
+    });
+  });
+
+  return found;
+}
+
+/* ════════════════════════════════════════════════
+   FUZZY MATCHING — year-aware + name-aware
+════════════════════════════════════════════════ */
+function jacc(a, b){
+  const na=norm(a), nb=norm(b);
+  if(na===nb) return 1; if(!na||!nb) return 0;
+  const sa=new Set(), sb=new Set();
+  for(let i=0;i<na.length-1;i++) sa.add(na.slice(i,i+2));
+  for(let i=0;i<nb.length-1;i++) sb.add(nb.slice(i,i+2));
+  if(!sa.size||!sb.size) return 0;
+  let inter=0; sa.forEach(g=>{ if(sb.has(g)) inter++; });
+  return inter/(sa.size+sb.size-inter);
+}
+
+// Extract trailing 4-digit year from a form number string
+function extractYear(s){
+  const m=(s||'').match(/\b(20\d{2})\b/);
+  return m ? parseInt(m[1]) : null;
+}
+
+// Strip year from form number for base comparison
+function stripYear(s){
+  return (s||'').replace(/\b20\d{2}\b/g,'').replace(/[\s\-\.]+/g,' ').trim();
+}
+
+function findFuzzyMatch(formNum, formDesc){
+  let best=null, bestScore=0;
+  const policyYear = extractYear(formNum);
+  const policyBase = stripYear(formNum);
+
+  [...pumaaData.sys,...pumaaData.uw].forEach(f=>{
+    if(norm(f.num)===norm(formNum)) return; // exact match already handled
+    // Guard: if policy form is a suffixed variant of PUMAA form (or vice versa),
+    // they are different forms — never suggest as a fuzzy match
+    const nForm=norm(formNum), nPumaa=norm(f.num);
+    if(nForm.startsWith(nPumaa) && nForm.length>nPumaa.length) return;
+    if(nPumaa.startsWith(nForm) && nPumaa.length>nForm.length) return;
+
+    const pumaaYear = extractYear(f.num);
+    const pumaaBase = stripYear(f.num);
+    const normBase  = norm(policyBase);
+    const normPBase = norm(pumaaBase);
+
+    // ── Year-aware scoring ────────────────────────
+    let score = jacc(formNum, f.num); // base Jaccard
+
+    // Boost if base (without year) matches strongly
+    if(normBase.length>=3 && normPBase.length>=3){
+      const baseScore = jacc(policyBase, pumaaBase);
+      if(baseScore > 0.80){
+        // Check year proximity: exact year = big boost, ±1 year = medium boost
+        if(policyYear && pumaaYear){
+          const yearDiff = Math.abs(policyYear - pumaaYear);
+          if(yearDiff===0)       score = Math.max(score, baseScore * 1.0);
+          else if(yearDiff===1)  score = Math.max(score, baseScore * 0.92);
+          else if(yearDiff===2)  score = Math.max(score, baseScore * 0.80);
+          // >2 years apart — still use base score but no boost
+        } else {
+          score = Math.max(score, baseScore * 0.88);
+        }
+      }
+    }
+
+    // ── Name similarity bonus (up to +0.10) ──────
+    if(formDesc && f.desc && score > 0.50){
+      const nameScore = jacc(formDesc, f.desc);
+      score = Math.min(1, score + nameScore * 0.12);
+    }
+
+    if(score > bestScore){ bestScore=score; best=f; }
+  });
+
+  // Return match if score ≥ 0.58, with year diff metadata
+  if(bestScore >= 0.58 && best){
+    const policyYear2 = extractYear(formNum);
+    const pumaaYear2  = extractYear(best.num);
+    const yearDiff    = (policyYear2 && pumaaYear2) ? Math.abs(policyYear2-pumaaYear2) : null;
+    const yearNote    = yearDiff!==null && yearDiff>0
+      ? ` (year ${policyYear2}→${pumaaYear2})`
+      : '';
+    return {form:best, score:Math.round(bestScore*100), yearNote};
+  }
+  return null;
+}
+
+/* ════ HELPERS ═══════════════════════════════ */
+function getInsuredName(){ return (document.getElementById('insuredNameInp')?.value||'').trim(); }
+function safeFileName(s){ return (s||'comparison').replace(/[^a-zA-Z0-9_\-\s]/g,'').replace(/\s+/g,'_').slice(0,40)||'comparison'; }
+
+/* ════ AUTO-DISCREPANCY DETECTION ════════════ */
+function detectAutoDiscrepancies(c1,c2,c3,c4){
+  const aDiscs=[]; const seenPair=new Set();
+  const allPolicy=[...c1.map(f=>({...f,_src:'c1'})),...c2.map(f=>({...f,_src:'c2'})),...c3.map(f=>({...f,_src:'c3'}))];
+  c4.forEach(f4=>{
+    if(!f4.desc||f4.desc.length<4) return;
+    let best=null,bestScore=0;
+    allPolicy.forEach(pf=>{
+      if(norm(pf.num)===norm(f4.num)) return;
+      const d=pf.desc||(pf.policyDesc&&pf.policyDesc.length>3?pf.policyDesc:'');
+      if(!d||d.length<3) return;
+      const s=jacc(f4.desc,d); if(s>bestScore){bestScore=s;best=pf;}
+    });
+    if(bestScore>=0.82&&best){
+      const key=[norm(f4.num),norm(best.num)].sort().join('|');
+      if(seenPair.has(key)) return; seenPair.add(key);
+      aDiscs.push({type:'name-match',pumaaForm:f4,policyForm:best,policySection:best._src,score:Math.round(bestScore*100)});
+    }
+  });
+  [...c1.map(f=>({...f,_src:'c1'})),...c2.map(f=>({...f,_src:'c2'}))].forEach(f=>{
+    if(!f.policyDesc||f.policyDesc.length<4||!f.desc||f.desc.length<3) return;
+    const sim=jacc(f.desc,f.policyDesc);
+    if(sim<0.55) aDiscs.push({type:'name-mismatch',form:f,pumaaName:f.desc,policyName:f.policyDesc,policySection:f._src,score:Math.round(sim*100)});
+  });
+  return aDiscs;
+}
+
+function renderAutoDiscSection(){
+  const wrap=document.getElementById('autoDiscSection'), pill=document.getElementById('autoDiscPill');
+  if(!wrap) return;
+  wrap.style.display=autoDiscs.length?'':'none'; pill.textContent=autoDiscs.length;
+  const body=document.getElementById('autoDiscBody'); body.innerHTML='';
+  const srcMeta={c1:{label:'✓ System Generated',col:'var(--green)',bg:'rgba(52,211,153,.08)',bd:'rgba(52,211,153,.2)'},c2:{label:'⚠ UW Choice',col:'var(--amber)',bg:'rgba(251,191,36,.08)',bd:'rgba(251,191,36,.2)'},c3:{label:'✕ Unverified',col:'var(--red)',bg:'rgba(248,113,113,.08)',bd:'rgba(248,113,113,.2)'}};
+  autoDiscs.forEach((disc,idx)=>{
+    const row=document.createElement('div'); row.className='adisc-row';
+    if(disc.type==='name-match'){
+      const sm=srcMeta[disc.policySection]||{label:'Policy',col:'var(--text2)',bg:'var(--glass)',bd:'var(--border)'};
+      const pNum=disc.policyForm.policyRaw||disc.policyForm.num;
+      row.innerHTML=`<div class="adisc-pair"><div class="adisc-side"><span class="adisc-badge adisc-badge-pumaa">PUMAA</span><span class="adisc-num">${escHtml(disc.pumaaForm.num)}</span><span class="adisc-name">${escHtml(disc.pumaaForm.desc||'')}</span></div><div class="adisc-arrow">⇄</div><div class="adisc-side"><span class="adisc-badge" style="color:${sm.col};background:${sm.bg};border-color:${sm.bd}">${sm.label}</span><span class="adisc-num">${escHtml(pNum)}</span><span class="adisc-name">${escHtml(disc.policyForm.desc||disc.policyForm.policyDesc||'')}</span></div></div><div class="adisc-reason"><span class="adisc-reason-label">Same form name — different form number</span><span class="adisc-score">${disc.score}% name match</span></div><div class="adisc-actions"><button class="adisc-accept-btn" data-idx="${idx}">✓ Accept as Match</button><button class="adisc-flag-btn" data-idx="${idx}">⚑ Add to Discrepancies</button><button class="adisc-dismiss-btn" data-idx="${idx}">✕ Dismiss</button></div>`;
+    } else {
+      row.innerHTML=`<div class="adisc-pair"><div class="adisc-side"><span class="adisc-badge adisc-badge-pumaa">PUMAA Name</span><span class="adisc-num">${escHtml(disc.form.num)}</span><span class="adisc-name">${escHtml(disc.pumaaName)}</span></div><div class="adisc-arrow">⇄</div><div class="adisc-side"><span class="adisc-badge adisc-badge-policy">Policy Name</span><span class="adisc-num">${escHtml(disc.form.policyRaw||disc.form.num)}</span><span class="adisc-name">${escHtml(disc.policyName)}</span></div></div><div class="adisc-reason"><span class="adisc-reason-label">Same form number — name differs between PUMAA and policy document</span><span class="adisc-score">${disc.score}% name similarity</span></div><div class="adisc-actions"><button class="adisc-flag-btn" data-idx="${idx}">⚑ Add to Discrepancies</button><button class="adisc-dismiss-btn" data-idx="${idx}">✕ Dismiss</button></div>`;
+    }
+    row.querySelector('.adisc-accept-btn')?.addEventListener('click',e=>adiscAccept(+e.target.dataset.idx));
+    row.querySelector('.adisc-flag-btn').addEventListener('click',e=>adiscFlag(+e.target.dataset.idx));
+    row.querySelector('.adisc-dismiss-btn').addEventListener('click',e=>adiscDismiss(+e.target.dataset.idx));
+    body.appendChild(row);
+  });
+}
+
+function adiscAccept(idx){
+  const disc=autoDiscs[idx]; if(disc.type!=='name-match') return;
+  const isSys=!!pumaaData.sys.find(f=>norm(f.num)===norm(disc.pumaaForm.num));
+  const merged={num:disc.pumaaForm.num,policyRaw:disc.policyForm.policyRaw||disc.policyForm.num,desc:disc.pumaaForm.desc,policyDesc:disc.policyForm.desc||disc.policyForm.policyDesc||'',src:isSys?'sys':'uw',_merged:true};
+  if(isSys) lastResult.c1.push(merged); else lastResult.c2.push(merged);
+  lastResult.c4=lastResult.c4.filter(f=>norm(f.num)!==norm(disc.pumaaForm.num));
+  if(disc.policySection==='c1') lastResult.c1=lastResult.c1.filter(f=>norm(f.num)!==norm(disc.policyForm.num));
+  else if(disc.policySection==='c2') lastResult.c2=lastResult.c2.filter(f=>norm(f.num)!==norm(disc.policyForm.num));
+  else if(disc.policySection==='c3') lastResult.c3=lastResult.c3.filter(f=>norm(f.num)!==norm(disc.policyForm.num));
+  autoDiscs.splice(idx,1);
+  renderStats(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+  renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+  renderSBS(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+  renderAutoDiscSection();
+  showToast(`Accepted: ${disc.pumaaForm.num} ↔ ${disc.policyForm.policyRaw||disc.policyForm.num}`,'ok');
+}
+
+function adiscFlag(idx){
+  const disc=autoDiscs[idx]; const dk='adisc_'+idx+'_'+Date.now();
+  let num,name,note;
+  if(disc.type==='name-match'){ num=disc.pumaaForm.num; name=disc.pumaaForm.desc; const pNum=disc.policyForm.policyRaw||disc.policyForm.num; note=`PUMAA: "${num}" — Policy: "${pNum}" — same form ("${name}"), different number`; }
+  else { num=disc.form.num; name=disc.pumaaName; note=`Form ${num}: PUMAA name "${disc.pumaaName}" — Policy name "${disc.policyName}"`; }
+  discrepancies[dk]={num,name,note,srcKey:disc.policySection};
+  autoDiscs.splice(idx,1); renderAutoDiscSection(); refreshDiscrepancySection();
+  showToast('Added to Discrepancies','warn');
+}
+
+function adiscDismiss(idx){ autoDiscs.splice(idx,1); renderAutoDiscSection(); showToast('Dismissed','info',2000); }
+
+/* ════ CHIP TEMPLATE MANAGEMENT ══════════════
+   Add / Edit / Remove the placeholder buttons
+   that insert pre-written notes.
+═════════════════════════════════════════════ */
+function renderChips(){
+  const container=document.getElementById('unotesChips'); if(!container) return;
+  container.innerHTML='';
+  chipTemplates.forEach(chip=>{
+    const wrap=document.createElement('div'); wrap.className='chip-wrap';
+    // Insert note button
+    const insertBtn=document.createElement('button');
+    insertBtn.className='unotes-chip chip-insert';
+    insertBtn.title=chip.text;
+    insertBtn.textContent='＋ '+chip.label;
+    insertBtn.addEventListener('click',()=>addUNote(chip.text));
+    // Edit button
+    const editBtn=document.createElement('button');
+    editBtn.className='chip-action-btn chip-edit-btn';
+    editBtn.title='Edit this note template';
+    editBtn.innerHTML='✎';
+    editBtn.addEventListener('click',(e)=>{ e.stopPropagation(); openChipEditor(chip.id); });
+    // Remove button
+    const rmBtn=document.createElement('button');
+    rmBtn.className='chip-action-btn chip-rm-btn';
+    rmBtn.title='Remove this template';
+    rmBtn.innerHTML='✕';
+    rmBtn.addEventListener('click',(e)=>{ e.stopPropagation(); removeChip(chip.id); });
+    wrap.appendChild(insertBtn);
+    wrap.appendChild(editBtn);
+    wrap.appendChild(rmBtn);
+    container.appendChild(wrap);
+  });
+  // "＋ New Template" chip
+  const newBtn=document.createElement('button');
+  newBtn.className='unotes-chip chip-new-btn';
+  newBtn.innerHTML='＋ New Template';
+  newBtn.addEventListener('click',()=>openChipEditor(null));
+  container.appendChild(newBtn);
+}
+
+function openChipEditor(chipId){
+  const existing=chipId!=null?chipTemplates.find(c=>c.id===chipId):null;
+  const overlay=document.createElement('div'); overlay.className='chip-editor-overlay'; overlay.id='chipEditorOverlay';
+  overlay.innerHTML=`
+    <div class="chip-editor-modal">
+      <div class="chip-editor-hd">
+        <span class="chip-editor-title">${existing?'Edit Template':'New Template'}</span>
+        <button class="chip-editor-close" onclick="closeChipEditor()">✕</button>
+      </div>
+      <label class="chip-editor-label">Button Label</label>
+      <input class="chip-editor-inp" id="chipEditorLabel" value="${escHtml(existing?.label||'')}" placeholder="e.g. Hydrant Distance">
+      <label class="chip-editor-label" style="margin-top:12px">Note Text <span style="font-weight:400;opacity:.6">(will be inserted as a note)</span></label>
+      <textarea class="chip-editor-inp chip-editor-ta" id="chipEditorText" rows="4" placeholder="e.g. Distance to Hydrant (in feet): Not answered — entered [X] ft.">${escHtml(existing?.text||'')}</textarea>
+      <div class="chip-editor-actions">
+        <button class="chip-editor-save" onclick="saveChipEditor('${chipId||''}')">✓ Save Template</button>
+        ${existing?`<button class="chip-editor-delete" onclick="removeChip('${chipId}');closeChipEditor()">🗑 Delete</button>`:''}
+        <button class="chip-editor-cancel" onclick="closeChipEditor()">Cancel</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) closeChipEditor(); });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>{ overlay.style.opacity='1'; overlay.querySelector('.chip-editor-modal').style.transform='translateY(0)'; });
+  document.getElementById('chipEditorLabel').focus();
+}
+
+function closeChipEditor(){
+  const overlay=document.getElementById('chipEditorOverlay');
+  if(overlay) overlay.remove();
+}
+
+function saveChipEditor(chipId){
+  const label=(document.getElementById('chipEditorLabel')?.value||'').trim();
+  const text=(document.getElementById('chipEditorText')?.value||'').trim();
+  if(!label){ showToast('Button label is required','err',2000); return; }
+  if(!text){ showToast('Note text is required','err',2000); return; }
+  if(chipId){
+    const chip=chipTemplates.find(c=>c.id===chipId);
+    if(chip){ chip.label=label; chip.text=text; }
+  } else {
+    chipTemplates.push({id:'c'+(chipIdCounter++),label,text});
+  }
+  closeChipEditor(); renderChips();
+  showToast(chipId?'Template updated':'Template added','ok',1800);
+}
+
+function removeChip(chipId){
+  chipTemplates=chipTemplates.filter(c=>c.id!==chipId);
+  renderChips();
+  showToast('Template removed','info',1800);
+}
+
+/* ════ UNDERWRITING NOTES ════════════════════ */
+function addUNote(text){
+  const list=document.getElementById('unotesList'), empty=document.getElementById('unotesEmpty');
+  if(empty) empty.style.display='none';
+  const id=++uNoteCounter;
+  const row=document.createElement('div'); row.className='unote-row'; row.id='unote_'+id;
+  row.innerHTML=`<span class="unote-bullet">•</span><textarea class="unote-text" rows="1" oninput="autoResizeUnote(this)">${escHtml(text)}</textarea><button class="unote-rm" onclick="removeUNote(${id})" title="Remove">✕</button>`;
+  list.appendChild(row); autoResizeUnote(row.querySelector('textarea'));
+  showToast('Note added','ok',1500);
+}
+function addUNoteCustom(){
+  const inp=document.getElementById('unotesCustomInp'); const val=inp.value.trim();
+  if(!val){ showToast('Type a note first','warn',2000); return; }
+  addUNote(val); inp.value='';
+}
+function removeUNote(id){
+  const el=document.getElementById('unote_'+id); if(!el) return;
+  el.style.opacity='0'; el.style.transition='opacity .2s';
+  setTimeout(()=>{ el.remove(); checkUNotesEmpty(); },220);
+}
+function checkUNotesEmpty(){
+  const list=document.getElementById('unotesList'); if(!list) return;
+  const empty=document.getElementById('unotesEmpty'); if(!empty) return;
+  empty.style.display=list.querySelectorAll('.unote-row').length>0?'none':'';
+}
+function autoResizeUnote(ta){ ta.style.height='auto'; ta.style.height=ta.scrollHeight+'px'; }
+function getUNotes(){ return Array.from(document.querySelectorAll('.unote-row .unote-text')).map(ta=>ta.value.trim()).filter(Boolean); }
+function resetUNotes(){
+  const list=document.getElementById('unotesList');
+  if(list) list.querySelectorAll('.unote-row').forEach(r=>r.remove());
+  const empty=document.getElementById('unotesEmpty'); if(empty) empty.style.display='';
+  uNoteCounter=0;
+}
+
+/* ════════════════════════════════════════════════
+   POLICY INPUT EVENTS
+════════════════════════════════════════════════ */
+function onPolicyInput(){
+  const forms=extractPolicyForms(document.getElementById('policyText').value);
+  const el=document.getElementById('detectNote'), dt=document.getElementById('detectText');
+  if(forms.length>0){
+    el.style.display='flex'; dt.textContent=forms.length+' form number'+(forms.length!==1?'s':'')+' detected';
+    policyLoaded=true; document.getElementById('card2').classList.add('active'); document.getElementById('sn2').classList.add('active');
+  } else { el.style.display='none'; policyLoaded=false; }
+  checkRunnable();
+}
+
+function getPolicyRaw(){
+  // Return raw text from whichever input is active
+  if(activeTab==='pdf'){
+    return document.getElementById('policyText2').value;
+  }
+  return document.getElementById('policyText').value;
+}
+
+/* ════════════════════════════════════════════════
+   RUN COMPARISON
+════════════════════════════════════════════════ */
+function runComparison(){
+  const raw=getPolicyRaw();
+  const forms=extractPolicyForms(raw);
+  if(!forms.length){ showToast('No form numbers detected','err'); return; }
+
+  const pn=new Set(forms.map(f=>norm(f.num)));
+  const c1=forms.filter(f=>f.src==='sys');
+  const c2=forms.filter(f=>f.src==='uw');
+  const c3=forms.filter(f=>f.src==='unknown');
+  const c4=pumaaData.sys.filter(f=>!pn.has(norm(f.num)));
+
+  lastResult={c1,c2,c3,c4}; notes={}; discrepancies={};
+  autoDiscs=detectAutoDiscrepancies(c1,c2,c3,c4);
+  renderStats(c1,c2,c3,c4); renderSections(c1,c2,c3,c4); renderSBS(c1,c2,c3,c4);
+  renderAutoDiscSection();
+  advanceStep(2); advanceStep(3);
+
+  document.getElementById('resultsArea').style.display='block';
+  document.getElementById('sbsBtn').style.display='';
+  document.getElementById('discSection').style.display='none';
+  document.getElementById('discRows').innerHTML='<div class="disc-empty">No discrepancies flagged yet — use ⚠ Flag on any row above</div>';
+  document.getElementById('discCount').textContent='0';
+  // Reset SBS toggle
+  sbsOpen=false;
+  document.getElementById('sbsWrap').classList.remove('open');
+  document.getElementById('sectionsWrap').style.display='';
+  document.getElementById('sbsBtn').classList.remove('active');
+
+  setTimeout(()=>document.getElementById('resultsArea').scrollIntoView({behavior:'smooth',block:'start'}),80);
+  const needsReview=c3.length+autoDiscs.length;
+  showToast(needsReview?`Done — ${needsReview} item${needsReview!==1?'s':''} need review`:'All forms matched!',needsReview?'warn':'ok');
+}
+
+function renderStats(c1,c2,c3,c4){
+  document.getElementById('statsRow').innerHTML=[
+    {n:c1.length,l:'Matched — System Generated',nc:'cg',card:'sg'},
+    {n:c2.length,l:'In Policy — UW Choice',nc:'ca',card:'uw'},
+    {n:c3.length,l:'Not in PUMAA — Review',nc:'cr',card:'nr'},
+    {n:c4.length,l:'PUMAA System — Not in Policy',nc:'ct',card:'po'},
+  ].map(x=>`<div class="stat ${x.card}"><div class="stat-n ${x.nc}">${x.n}</div><div class="stat-l">${x.l}</div></div>`).join('');
+}
+
+/* ════════════════════════════════════════════════
+   SIDE-BY-SIDE VIEW
+════════════════════════════════════════════════ */
+function toggleSBS(){
+  sbsOpen=!sbsOpen;
+  document.getElementById('sbsWrap').classList.toggle('open',sbsOpen);
+  document.getElementById('sectionsWrap').style.display=sbsOpen?'none':'';
+  document.getElementById('sbsBtn').classList.toggle('active',sbsOpen);
+}
+
+function renderSBS(c1,c2,c3,c4){
+  const pn=new Set([...c1,...c2,...c3].map(f=>norm(f.num)));
+
+  // Left panel: PUMAA system generated forms
+  const left=document.getElementById('sbsLeft');
+  left.innerHTML='';
+  pumaaData.sys.forEach(f=>{
+    const inPolicy=pn.has(norm(f.num));
+    const row=document.createElement('div'); row.className='sbs-row';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:7px">
+        <span class="sbs-status ${inPolicy?'ss-matched':'ss-missing'}"></span>
+        <span class="sbs-num">${escHtml(f.num)}</span>
+      </div>
+      <span class="sbs-name">${escHtml(f.desc)}</span>`;
+    left.appendChild(row);
+  });
+
+  // Right panel: Policy forms with status
+  const right=document.getElementById('sbsRight');
+  right.innerHTML='';
+  [...c1,...c2,...c3].forEach(f=>{
+    const cls=f.src==='sys'?'ss-matched':f.src==='uw'?'ss-uw':'ss-unknown';
+    const label=f.src==='sys'?'Sys':f.src==='uw'?'UW':'?';
+    const row=document.createElement('div'); row.className='sbs-row';
+    row.innerHTML=`
+      <div style="display:flex;align-items:center;gap:7px">
+        <span class="sbs-status ${cls}"></span>
+        <span class="sbs-num">${escHtml(f.policyRaw||f.num)}</span>
+      </div>
+      <span class="sbs-name">${f.desc?escHtml(f.desc):'<em style="color:var(--text3)">Not in PUMAA</em>'}</span>`;
+    right.appendChild(row);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   SECTION CONFIG
+════════════════════════════════════════════════ */
+const SEC_CONFIG=[
+  {key:'c1',sid:'s1',rowCls:'fr-sg',iconBg:'rgba(52,211,153,.12)',iconClr:'#34d399',icon:'✓',pill:'p-g',title:'In Policy — System Generated',sub:'Auto-matched from PUMAA. No action needed.',collapsed:false},
+  {key:'c2',sid:'s2',rowCls:'fr-uw',iconBg:'rgba(251,191,36,.12)',iconClr:'#fbbf24',icon:'⚠',pill:'p-a',title:"In Policy — Underwriter's Choice",sub:'Optional UW forms. Confirm intentional.',collapsed:false},
+  {key:'c3',sid:'s3',rowCls:'fr-nr',iconBg:'rgba(248,113,113,.12)',iconClr:'#f87171',icon:'✕',pill:'p-r',title:'In Policy — NOT Found in PUMAA',sub:'Not in PUMAA. Add notes or flag near-matches.',collapsed:false},
+  {key:'c4',sid:'s4',rowCls:'fr-po',iconBg:'rgba(45,212,191,.12)',iconClr:'#2dd4bf',icon:'○',pill:'p-t',title:'In PUMAA (System Generated) — Not in Policy',sub:'System forms absent from policy.',collapsed:true},
+];
+
+function renderSections(c1,c2,c3,c4){
+  const data={c1,c2,c3,c4}, wrap=document.getElementById('sectionsWrap');
+  wrap.innerHTML='';
+  SEC_CONFIG.forEach(cfg=>wrap.appendChild(buildSection(cfg,data[cfg.key])));
+}
+
+/* ════════════════════════════════════════════════
+   BUILD SECTION
+════════════════════════════════════════════════ */
+function buildSection(cfg,items){
+  const wrap=document.createElement('div'); wrap.className='section';
+  const bodyId=cfg.sid+'_body', arrId=cfg.sid+'_arr', open=!cfg.collapsed;
+  const showFlag=cfg.key==='c1'||cfg.key==='c2'||cfg.key==='c3'||cfg.key==='c4';
+
+  const hd=document.createElement('div'); hd.className='sec-hd';
+  hd.innerHTML=`<div class="sec-icon" style="background:${cfg.iconBg};color:${cfg.iconClr}">${cfg.icon}</div>
+    <span class="sec-title" style="color:${cfg.iconClr}">${cfg.title}<span class="sec-sub">— ${cfg.sub}</span></span>
+    <span class="pill ${cfg.pill}" id="${cfg.sid}_pill">${items.length}</span>
+    <span class="sarr ${open?'open':''}" id="${arrId}">▶</span>`;
+  hd.onclick=()=>toggleSec(bodyId,arrId);
+  wrap.appendChild(hd);
+
+  const body=document.createElement('div'); body.id=bodyId; body.style.display=open?'':'none';
+
+  if(!items.length){
+    body.innerHTML='<div class="empty-msg">— None —</div>';
+  } else {
+    // Grid: numCol | nameCol | notesCol | [removeBtn]
+    // For c3/c1/c2: also flag col but remove replaces the flag col end
+    const gc = showFlag ? '200px 1fr 148px 28px 28px' : '200px 1fr 200px 28px';
+    const ch=document.createElement('div'); ch.className='col-hdr'; ch.style.gridTemplateColumns=gc;
+    ch.innerHTML=`<span>Form Number</span><span>Form Name</span><span>Notes</span>${showFlag?'<span>Flag</span>':''}<span></span>`;
+    body.appendChild(ch);
+
+    items.forEach((item,i)=>{
+      const nk=cfg.sid+'_'+i, dk=cfg.sid+'_d_'+i;
+      const wrapper=document.createElement('div');
+      wrapper.style.cssText='border-bottom:1px solid rgba(255,255,255,.04)';
+      wrapper.id='wrapper_'+cfg.sid+'_'+i;
+
+      const row=document.createElement('div'); row.className='form-row '+cfg.rowCls;
+      row.style.gridTemplateColumns=gc; row.style.borderBottom='none';
+      row.setAttribute('data-search',norm(item.num)+' '+(item.desc||'').toUpperCase());
+
+      const pumaaNum=item.num, policyNum=item.policyRaw||item.num;
+      const fmtDiff=(cfg.key==='c1'||cfg.key==='c2')&&pumaaNum!==policyNum;
+      let numHtml='';
+      if(cfg.key==='c1'||cfg.key==='c2'){
+        numHtml=fmtDiff
+          ?`<div class="f-num-wrap"><span class="f-num" title="Click to copy" data-copy="${escHtml(pumaaNum)}">${escHtml(pumaaNum)}</span><span class="fmt-tag fmt-pumaa"><span class="fmt-lbl">PUMAA</span>${escHtml(pumaaNum)}</span><span class="fmt-tag fmt-policy"><span class="fmt-lbl">Policy</span>${escHtml(policyNum)}</span></div>`
+          :`<div class="f-num-wrap"><span class="f-num" title="Click to copy" data-copy="${escHtml(pumaaNum)}">${escHtml(pumaaNum)}</span><span class="fmt-tag fmt-match">✓ formats match</span></div>`;
+      } else if(cfg.key==='c3'){
+        numHtml=`<div class="f-num-wrap"><span class="f-num" title="Click to copy" data-copy="${escHtml(policyNum)}">${escHtml(policyNum)}</span><span class="fmt-tag fmt-policy"><span class="fmt-lbl">Policy</span>${escHtml(policyNum)}</span></div>`;
+      } else {
+        numHtml=`<div class="f-num-wrap"><span class="f-num" title="Click to copy" data-copy="${escHtml(pumaaNum)}">${escHtml(pumaaNum)}</span><span class="fmt-tag fmt-pumaa"><span class="fmt-lbl">PUMAA</span>${escHtml(pumaaNum)}</span></div>`;
+      }
+      const nameHtml=item.desc
+        ?`<span class="f-name">${escHtml(item.desc)}</span>`
+        :item.policyDesc&&item.policyDesc.length>1
+          ?`<span class="f-name">${escHtml(item.policyDesc)}<span class="f-name-src"> · Policy</span></span>`
+          :`<span class="f-name"><em class="f-name-none">Not in PUMAA</em></span>`;
+      const displayNum=pumaaNum;
+
+      row.innerHTML=`
+        ${numHtml}
+        ${nameHtml}
+        <input class="note-inp" placeholder="Add note…" data-nk="${nk}">
+        ${showFlag?`<button class="flag-btn" data-dk="${dk}" title="Flag discrepancy">⚠</button>`:''}
+        <button class="rm-btn" title="Remove this row">✕</button>`;
+
+      // Copy on click
+      row.querySelector('.f-num').addEventListener('click', function(){
+        const txt = this.dataset.copy || this.textContent;
+        navigator.clipboard.writeText(txt).then(()=>{
+          this.classList.add('copy-flash');
+          showToast('Copied: '+txt,'ok',1800);
+          setTimeout(()=>this.classList.remove('copy-flash'),600);
+        }).catch(()=>showToast('Copy failed','err'));
+      });
+
+      // Remove row
+      row.querySelector('.rm-btn').addEventListener('click',()=>{
+        wrapper.style.transition='opacity .25s';
+        wrapper.style.opacity='0';
+        setTimeout(()=>{
+          wrapper.remove();
+          // Update pill count
+          const pill=document.getElementById(cfg.sid+'_pill');
+          if(pill) pill.textContent=Math.max(0,(parseInt(pill.textContent)||1)-1);
+          // Remove from lastResult so exports are accurate
+          lastResult[cfg.key]=lastResult[cfg.key].filter((_,j)=>j!==i);
+        },250);
+      });
+
+      // Note input
+      row.querySelector('.note-inp').addEventListener('input',function(){
+        notes[this.dataset.nk]=this.value; this.className='note-inp'+(this.value?' has-note':'');
+      });
+
+      // ── FUZZY MATCH HINT (c3 only) ──────────────────
+      if(cfg.key==='c3'){
+        const fz=findFuzzyMatch(item.num, item.desc);
+        if(fz){
+          const yearBadge = fz.yearNote
+            ? `<span class="year-diff">${fz.yearNote}</span>`
+            : '';
+          const fzRow=document.createElement('div');
+          fzRow.style.cssText='padding:0 18px 7px;border-bottom:1px solid rgba(255,255,255,.04)';
+          fzRow.innerHTML=`
+            <div class="fuzzy-hint">
+              🔍 Possible match:&nbsp;
+              <strong style="cursor:pointer" class="fz-num" data-copy="${escHtml(fz.form.num)}">${escHtml(fz.form.num)}</strong>
+              — <span style="color:var(--text2)">${escHtml(fz.form.desc||'')}</span>
+              &nbsp;<span class="fuzzy-score">${fz.score}%</span>
+              ${yearBadge}
+              <button class="accept-btn" style="margin-left:auto" title="Accept as match — moves this form to matched section">✓ Accept Match</button>
+              <button class="flag-btn" style="margin-left:6px;padding:3px 8px;font-size:11px" title="Flag as discrepancy">⚠ Flag</button>
+            </div>`;
+
+          // Copy PUMAA match number on click
+          fzRow.querySelector('.fz-num').addEventListener('click',function(e){
+            e.stopPropagation();
+            navigator.clipboard.writeText(this.dataset.copy)
+              .then(()=>showToast('Copied: '+this.dataset.copy,'ok',1800));
+          });
+
+          // Accept match — move from c3 → c1 or c2 based on PUMAA source
+          fzRow.querySelector('.accept-btn').addEventListener('click',()=>{
+            const pSrc = pumaaData.sys.find(f=>norm(f.num)===norm(fz.form.num)) ? 'sys' : 'uw';
+            const moved = {
+              policyRaw: item.num,
+              num: fz.form.num,
+              desc: fz.form.desc,
+              src: pSrc
+            };
+            // Remove from c3
+            lastResult.c3 = lastResult.c3.filter(f=>norm(f.num)!==norm(item.num));
+            // Add to c1 or c2
+            if(pSrc==='sys') lastResult.c1.push(moved);
+            else             lastResult.c2.push(moved);
+            // Re-render everything
+            renderStats(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+            renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+            renderSBS(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+            showToast(`Accepted: ${item.num} → ${fz.form.num} (${pSrc==='sys'?'System Generated':'UW Choice'})`,'ok');
+          });
+
+          // Flag this discrepancy
+          fzRow.querySelector('.flag-btn').addEventListener('click',()=>{
+            const flagBtn=wrapper.querySelector('.flag-btn.flag-btn');
+            if(flagBtn&&!flagBtn.classList.contains('flagged')){
+              flagBtn.click();
+              const di=wrapper.querySelector('.disc-inp');
+              if(di&&!di.value){
+                di.value=`Possible match with PUMAA form "${fz.form.num}" (${fz.form.desc||''})${fz.yearNote} — verify before binding`;
+                di.dispatchEvent(new Event('input'));
+              }
+            }
+          });
+
+          wrapper.appendChild(row);
+          if(showFlag) setupFlag(row, item, cfg, dk, fmtDiff, pumaaNum, policyNum, wrapper);
+          wrapper.appendChild(fzRow);
+        } else {
+          wrapper.appendChild(row);
+          if(showFlag) setupFlag(row, item, cfg, dk, fmtDiff, pumaaNum, policyNum, wrapper);
+        }
+      } else {
+        wrapper.appendChild(row);
+        if(showFlag) setupFlag(row, item, cfg, dk, fmtDiff, pumaaNum, policyNum, wrapper);
+      }
+
+      body.appendChild(wrapper);
+    });
+  }
+
+  wrap.appendChild(body);
+  const div=document.createElement('div'); div.style.cssText='height:1px;background:rgba(255,255,255,.04)';
+  wrap.appendChild(div);
+  return wrap;
+}
+
+// ── Flag + discrepancy input setup ──────────────────
+function setupFlag(row, item, cfg, dk, fmtDiff, pumaaNum, policyNum, wrapper){
+  const dw=document.createElement('div'); dw.className='disc-inp-wrap'; dw.id='dw_'+dk;
+  const ph=cfg.key==='c3'
+    ?'May exist in PUMAA under a slightly different code — describe what you found'
+    :'Describe discrepancy — e.g. name in PUMAA differs from policy';
+  dw.innerHTML=`<input class="disc-inp" placeholder="${ph}" data-dk="${dk}" data-num="${escHtml(item.num)}" data-name="${escHtml(item.desc||'')}">`;
+
+  // AUTO-SUGGEST: pre-fill note for format mismatches in c1/c2
+  const autoNote = fmtDiff
+    ? `Policy format: "${policyNum}" — PUMAA format: "${pumaaNum}" — same form, different notation`
+    : '';
+
+  row.querySelector('.flag-btn').addEventListener('click',function(){
+    const already=this.classList.contains('flagged');
+    if(already){
+      this.classList.remove('flagged'); this.textContent='⚠ Flag';
+      dw.classList.remove('open'); delete discrepancies[dk];
+    } else {
+      this.classList.add('flagged'); this.textContent='✕ Unflag';
+      dw.classList.add('open');
+      // Auto-suggest discrepancy note
+      const inp=dw.querySelector('input');
+      if(autoNote && !inp.value){ inp.value=autoNote; inp.dispatchEvent(new Event('input')); }
+      discrepancies[dk]={num:item.num,name:item.desc||'',note:inp.value,srcKey:cfg.key};
+      if(!autoNote) inp.focus();
+    }
+    refreshDiscrepancySection();
+  });
+
+  dw.querySelector('input').addEventListener('input',function(){
+    if(dw.classList.contains('open')){
+      discrepancies[this.dataset.dk]={num:this.dataset.num,name:this.dataset.name,note:this.value.trim(),srcKey:cfg.key};
+    }
+    refreshDiscrepancySection();
+  });
+
+  wrapper.appendChild(dw);
+}
+
+function toggleSec(bodyId,arrId){
+  const b=document.getElementById(bodyId), a=document.getElementById(arrId);
+  const showing=b.style.display!=='none';
+  b.style.display=showing?'none':''; a.classList.toggle('open',!showing);
+}
+
+/* ════════════════════════════════════════════════
+   DISCREPANCY SECTION
+════════════════════════════════════════════════ */
+function refreshDiscrepancySection(){
+  const keys=Object.keys(discrepancies);
+  const sec=document.getElementById('discSection'), count=document.getElementById('discCount');
+  const rows=document.getElementById('discRows');
+  sec.style.display=keys.length?'':'none'; count.textContent=keys.length;
+  if(!keys.length){ rows.innerHTML='<div class="disc-empty">No discrepancies flagged yet — use ⚠ Flag on any row above</div>'; return; }
+  rows.innerHTML='';
+  keys.forEach(k=>{
+    const d=discrepancies[k];
+    const sl=d.srcKey==='c3'?'✕ Not found in PUMAA':d.srcKey==='c1'?'✓ System Generated':'⚠ UW Choice';
+    const sc=d.srcKey==='c3'?'#f87171':d.srcKey==='c1'?'#34d399':'#fbbf24';
+    const row=document.createElement('div'); row.className='disc-row';
+    row.innerHTML=`<div><div class="disc-fn">${escHtml(d.num)}</div><div class="disc-fname">${escHtml(d.name||'—')}</div><div class="disc-src" style="color:${sc}">${sl}</div></div>
+      <div class="disc-note">${d.note?escHtml(d.note):'<em style="color:rgba(251,191,36,.4)">No note yet — type above</em>'}</div>`;
+    rows.appendChild(row);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   STEP UI
+════════════════════════════════════════════════ */
+function advanceStep(n){
+  const card=document.getElementById('card'+n); if(card){ card.classList.remove('active'); card.classList.add('done'); }
+  const sn=document.getElementById('sn'+n), sc=document.getElementById('sc'+n);
+  if(sn){ sn.classList.remove('active'); sn.classList.add('done'); } if(sc) sc.textContent='✓';
+  const sl=document.getElementById('sl'+n); if(sl) sl.classList.add('done');
+}
+
+function checkRunnable(){
+  const btn=document.getElementById('runBtn'), pill=document.getElementById('statusPill');
+  btn.disabled=!(htmlLoaded&&policyLoaded);
+  if(!htmlLoaded&&!policyLoaded) pill.textContent='Upload a PUMAA file and add policy forms to begin';
+  else if(!htmlLoaded)           pill.textContent='Waiting for PUMAA file upload…';
+  else if(!policyLoaded)         pill.textContent='Paste or upload policy forms to continue…';
+  else                           pill.textContent='✓ Ready — click Compare Forms';
+}
+
+function filterRows(q){
+  const k=q.toUpperCase().replace(/\s+/g,'');
+  document.querySelectorAll('.form-row').forEach(row=>{
+    const ds=(row.getAttribute('data-search')||'').replace(/\s+/g,'');
+    row.style.display=(!k||ds.includes(k))?'':'none';
+  });
+}
+
+/* ════════════════════════════════════════════════
+   RESET
+════════════════════════════════════════════════ */
+function resetAll(){
+  pumaaData={sys:[],uw:[],quoteNum:'',insured:''};
+  notes={}; discrepancies={}; lastResult={c1:[],c2:[],c3:[],c4:[]};
+  autoDiscs=[];
+  const _ads=document.getElementById('autoDiscSection'); if(_ads) _ads.style.display='none';
+  const _ins=document.getElementById('insuredNameInp'); if(_ins) _ins.value='';
+  resetUNotes();
+  htmlLoaded=false; policyLoaded=false; sbsOpen=false;
+  document.getElementById('policyText').value='';
+  document.getElementById('policyText2').value='';
+  ['parseBadges','detectNote','detectNote2','resultsArea','alert1','discSection','pdfExtracted','pdfStatus'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  document.getElementById('htmlFile').value='';
+  document.getElementById('pdfFile').value='';
+  document.getElementById('discRows').innerHTML='<div class="disc-empty">No discrepancies flagged yet — use ⚠ Flag on any row above</div>';
+  document.getElementById('discCount').textContent='0';
+  document.getElementById('sbsBtn').style.display='none';
+  document.getElementById('sbsWrap').classList.remove('open');
+  document.getElementById('uzEmoji').textContent='📥';
+  document.getElementById('uzLabel').textContent='Click to choose or drag & drop here';
+  document.getElementById('uzHint').textContent='Accepts the saved PUMAA Endorsements HTML file';
+  document.getElementById('pdfEmoji').textContent='📤';
+  document.getElementById('pdfLabel').textContent='Click to choose or drag & drop PDF';
+  document.getElementById('dropZone').classList.remove('loaded');
+  document.getElementById('pdfZone').classList.remove('loaded');
+  switchTab('manual');
+  [1,2].forEach(n=>{
+    const c=document.getElementById('card'+n); c.classList.remove('done','active'); if(n===1) c.classList.add('active');
+    const sn=document.getElementById('sn'+n); sn.classList.remove('done','active'); if(n===1) sn.classList.add('active');
+    document.getElementById('sc'+n).textContent=n;
+    const sl=document.getElementById('sl'+n); if(sl) sl.classList.remove('done');
+  });
+  document.getElementById('sn3').classList.remove('done','active'); document.getElementById('sc3').textContent='3';
+  checkRunnable(); resetPolicyInfo(); showToast('Reset complete');
+}
+
+/* ════════════════════════════════════════════════
+   FORMATTED LIST COPY
+════════════════════════════════════════════════ */
+function copyFormattedList(){
+  const c2=lastResult.c2||[], c3=lastResult.c3||[];
+  const dk=Object.keys(discrepancies); const unotes=getUNotes();
+  if(!c2.length&&!c3.length&&!dk.length&&!autoDiscs.length&&!unotes.length){ showToast('Run comparison first','err'); return; }
+  const flaggedC3=new Set(dk.filter(k=>discrepancies[k].srcKey==='c3').map(k=>norm(discrepancies[k].num)));
+  const insured=getInsuredName(); let out='';
+  const piText=getPolicyInfoText();
+  const taskNum = (document.getElementById('taskNumInp')?.value||'').trim();
+const taskHeader = [taskNum&&`Task ${taskNum}`,insured].filter(Boolean).join(' - ');
+if(taskHeader){
+  const stars='*'.repeat(Math.min(taskHeader.length,52));
+  out+=`${stars}\n${taskHeader}\n${stars}\n`;
+}
+if(piText) out+=piText+'\n';
+  if(unotes.length){ unotes.forEach(n=>{ out+=`• ${n}\n`; }); out+='\n'; }
+  const c3clean=c3.filter(item=>!flaggedC3.has(norm(item.num)));
+  if(c3clean.length){
+    out+='• Forms present in policy — not found in PUMAA\n';
+    c3clean.forEach(item=>{ const ri=c3.findIndex(x=>norm(x.num)===norm(item.num));
+      out+=`- (${item.num}) ${item.desc||item.policyDesc||item.num}${notes['s3_'+ri]?' — '+notes['s3_'+ri]:''}\n`; });
+  }
+  if(c2.length){
+    if(out) out+='\n'; out+='• Underwriter-selected forms — not auto-generated in PUMAA\n';
+    c2.forEach((item,i)=>{ out+=`- (${item.num}) ${item.desc||item.num}${notes['s2_'+i]?' — '+notes['s2_'+i]:''}\n`; });
+  }
+  const nmD=autoDiscs.filter(d=>d.type==='name-match'), mmD=autoDiscs.filter(d=>d.type==='name-mismatch');
+  if(nmD.length){ if(out) out+='\n'; out+='• Auto-Detected — Same form name, different form number\n'; nmD.forEach(d=>{ const pNum=d.policyForm.policyRaw||d.policyForm.num; out+=`- PUMAA: "${d.pumaaForm.num}" — Policy: "${pNum}" — ${d.pumaaForm.desc} (${d.score}% match)\n`; }); }
+  if(mmD.length){ if(out) out+='\n'; out+='• Auto-Detected — Same form number, name differs\n'; mmD.forEach(d=>{ out+=`- (${d.form.num}) PUMAA: "${d.pumaaName}" / Policy: "${d.policyName}"\n`; }); }
+  if(dk.length){ if(out) out+='\n'; out+='• PUMAA vs. Policy — Flagged Discrepancies\n'; dk.forEach(k=>{ const d=discrepancies[k]; out+=`- (${d.num}) ${d.name}${d.note?' — '+d.note:''}\n`; }); }
+  navigator.clipboard.writeText(out.trimEnd()).then(()=>showToast('Formatted list copied — ready to paste!')).catch(()=>showToast('Copy failed','err'));
+}
+
+/* ════════════════════════════════════════════════
+   FULL REPORT + CSV
+════════════════════════════════════════════════ */
+function buildReport(){
+  const insured=getInsuredName(); const q=pumaaData.quoteNum?` | ${pumaaData.quoteNum}${pumaaData.insured?' / '+pumaaData.insured:''}`:''
+  const piText=getPolicyInfoText(); const unotes=getUNotes();
+  let out=`RISCO FORMSYNC — COMPARISON REPORT\nDate: ${new Date().toLocaleDateString()}${q}\n`;
+  const _taskNum=(document.getElementById('taskNumInp')?.value||'').trim();
+const _taskHeader=[_taskNum&&`Task ${_taskNum}`,insured].filter(Boolean).join(' - ');
+if(_taskHeader){ const _stars='*'.repeat(Math.min(_taskHeader.length,52)); out+=`${_stars}\n${_taskHeader}\n${_stars}\n`; }
+  out+='═'.repeat(55)+'\n';
+  if(piText) out+='\n'+piText+'\n';
+  if(unotes.length){ out+=`\n[📝] UNDERWRITING NOTES\n${'─'.repeat(45)}\n`; unotes.forEach(n=>{ out+=`  • ${n}\n`; }); }
+  SEC_CONFIG.forEach((cfg,si)=>{
+    const items=lastResult[cfg.key]||[];
+    out+=`\n[${'✓⚠✕○'[si]}] ${cfg.title.toUpperCase()} (${items.length})\n${'─'.repeat(45)}\n`;
+    if(!items.length){ out+='  (none)\n'; return; }
+    items.forEach((item,i)=>{
+      const pf=item.policyRaw&&item.policyRaw!==item.num?` [Policy: ${item.policyRaw}]`:'';
+      out+=`  ${item.num.padEnd(30)} ${item.desc||item.policyDesc||'Unknown form'}${pf}\n`;
+      if(notes[cfg.sid+'_'+i]) out+=`    ↳ NOTE: ${notes[cfg.sid+'_'+i]}\n`;
+    });
+  });
+  if(autoDiscs.length){
+    out+=`\n[⚡] AUTO-DETECTED CONFLICTS (${autoDiscs.length})\n${'─'.repeat(45)}\n`;
+    autoDiscs.forEach(d=>{
+      if(d.type==='name-match'){ const pNum=d.policyForm.policyRaw||d.policyForm.num; out+=`  PUMAA: ${d.pumaaForm.num.padEnd(20)} Policy: ${pNum.padEnd(20)} ${d.pumaaForm.desc}\n    ↳ Same form name, different number (${d.score}% match)\n`; }
+      else { out+=`  ${d.form.num.padEnd(30)} Number match — name differs (${d.score}% similar)\n    ↳ PUMAA: "${d.pumaaName}" / Policy: "${d.policyName}"\n`; }
+    });
+  }
+  const discKeys=Object.keys(discrepancies);
+  if(discKeys.length){ out+=`\n[⚠] FLAGGED DISCREPANCIES (${discKeys.length})\n${'─'.repeat(45)}\n`; discKeys.forEach(k=>{const d=discrepancies[k];out+=`  ${d.num.padEnd(30)} ${d.name}\n`;if(d.note)out+=`    ↳ ${d.note}\n`;}); }
+  return out;
+}
+
+function doCopy(){ navigator.clipboard.writeText(buildReport()).then(()=>showToast('Full report copied!')).catch(()=>showToast('Copy failed','err')); }
+
+function doCSV(){
+  const insured=getInsuredName(); const q=pumaaData.quoteNum||'';
+  let csv=`Quote,${q}\nDate,${new Date().toLocaleDateString()}\n`;
+  if(insured) csv+=`Insured,${insured}\n`;
+  csv+=`\nCategory,PUMAA Form Number,Policy Form Number,Form Name,Note\n`;
+  SEC_CONFIG.forEach(cfg=>{
+    (lastResult[cfg.key]||[]).forEach((item,i)=>{
+      const note=(notes[cfg.sid+'_'+i]||'').replace(/"/g,'""');
+      const pn=(item.policyRaw||item.num).replace(/"/g,'""');
+      csv+=`"${cfg.title}","${item.num}","${pn}","${(item.desc||item.policyDesc||'Unknown').replace(/"/g,'""')}","${note}"\n`;
+    });
+  });
+  autoDiscs.forEach(d=>{
+    if(d.type==='name-match'){ const pNum=d.policyForm.policyRaw||d.policyForm.num; csv+=`"Auto-Conflict (Name Match)","${d.pumaaForm.num}","${pNum}","${(d.pumaaForm.desc||'').replace(/"/g,'""')}","Same form name, different number (${d.score}%)"\n`; }
+    else { csv+=`"Auto-Conflict (Name Mismatch)","${d.form.num}","${d.form.policyRaw||d.form.num}","${d.pumaaName.replace(/"/g,'""')}","Policy name: ${d.policyName.replace(/"/g,'""')}"\n`; }
+  });
+  Object.keys(discrepancies).forEach(k=>{ const d=discrepancies[k]; csv+=`"Discrepancy","${d.num}","${d.num}","${(d.name||'').replace(/"/g,'""')}","${(d.note||'').replace(/"/g,'""')}"\n`; });
+  const fname=`risco_${safeFileName(insured||q||'comparison')}_${new Date().toISOString().slice(0,10)}.csv`;
+  const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download=fname; a.click();
+  showToast(`CSV saved: ${fname}`);
+}
+
+function toggleIdeas(){
+  const b=document.getElementById('ideasBody'), a=document.getElementById('ideasArr');
+  const open=b.classList.toggle('open'); a.classList.toggle('open',open);
+}
+
+/* ════════════════════════════════════════════════
+   DRAG & DROP (PUMAA HTML)
+════════════════════════════════════════════════ */
+(function(){
+  const dz=document.getElementById('dropZone');
+  dz.addEventListener('dragover',e=>{ e.preventDefault(); dz.classList.add('dragging'); });
+  dz.addEventListener('dragleave',()=>dz.classList.remove('dragging'));
+  dz.addEventListener('drop',e=>{
+    e.preventDefault(); dz.classList.remove('dragging');
+    const f=e.dataTransfer.files[0]; if(!f) return;
+    const dt=new DataTransfer(); dt.items.add(f);
+    const inp=document.getElementById('htmlFile'); inp.files=dt.files; handleFile(inp);
+  });
+
+  // PDF drop zone
+  const pz=document.getElementById('pdfZone');
+  pz.addEventListener('dragover',e=>{ e.preventDefault(); pz.classList.add('dragging'); });
+  pz.addEventListener('dragleave',()=>pz.classList.remove('dragging'));
+  pz.addEventListener('drop',e=>{
+    e.preventDefault(); pz.classList.remove('dragging');
+    const f=e.dataTransfer.files[0]; if(!f) return;
+    const dt=new DataTransfer(); dt.items.add(f);
+    const inp=document.getElementById('pdfFile'); inp.files=dt.files; handlePDF(inp);
+  });
+})();
+
+checkRunnable();
+// Initialise first previous-policy entry
+addPolicyEntry();
+</script>
+</body>
+</html>
