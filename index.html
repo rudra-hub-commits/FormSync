@@ -494,6 +494,20 @@ textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba
 .chip-editor-cancel{background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text3);font-family:'Outfit',sans-serif;margin-left:auto;transition:all .15s}
 .chip-editor-cancel:hover{border-color:var(--border2);color:var(--text)}
 /* unote rows */
+  .unotes-copy-row{display:flex;gap:7px;margin-bottom:.75rem;flex-wrap:wrap}
+.unotes-copy-btn{
+  font-size:11.5px;font-weight:700;padding:5px 13px;border-radius:7px;cursor:pointer;
+  background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.22);color:var(--teal);
+  font-family:'Outfit',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:5px;
+}
+.unotes-copy-btn:hover{background:rgba(45,212,191,.18);border-color:var(--teal);transform:translateY(-1px)}
+.unotes-copy-excel{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.25);color:var(--green)}
+.unotes-copy-excel:hover{background:rgba(52,211,153,.16);border-color:var(--green)}
+/* light mode */
+body.theme-light .unotes-copy-btn{background:rgba(15,118,110,.06);border-color:rgba(15,118,110,.2);color:#0f766e}
+body.theme-light .unotes-copy-btn:hover{background:rgba(15,118,110,.12);border-color:#0f766e}
+body.theme-light .unotes-copy-excel{background:#f0fdf4;border-color:#86efac;color:#059669}
+body.theme-light .unotes-copy-excel:hover{background:#dcfce7;border-color:#059669}
 .unotes-input-row{display:flex;gap:8px;margin-bottom:.875rem}
 .unotes-inp{flex:1;padding:9px 13px;border:1px solid var(--border2);border-radius:var(--r-sm);font-size:12.5px;background:rgba(0,0,0,.22);color:var(--text);font-family:'Outfit',sans-serif;transition:border-color .2s}
 .unotes-inp::placeholder{color:var(--text3)}
@@ -771,6 +785,11 @@ body.theme-dark{
       <span style="font-size:11px;color:var(--text3)">Click ＋ to insert · ✎ to edit template · ✕ to remove template</span>
     </div>
     <div class="unotes-chips" id="unotesChips"></div>
+    <div class="unotes-copy-row">
+  <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Notes</button>
+  <button class="unotes-copy-btn" onclick="copyFormattedList()" title="Copy everything — notes, forms, discrepancies">📄 Copy All</button>
+  <button class="unotes-copy-btn unotes-copy-excel" onclick="copyForExcel()" title="Copy notes + form comments — optimised for Excel paste">📊 Copy for Excel</button>
+</div>
     <div class="unotes-input-row">
       <input class="unotes-inp" id="unotesCustomInp" placeholder="Type a custom note and press Enter or Add…"
         onkeydown="if(event.key==='Enter'){addUNoteCustom();event.preventDefault()}">
@@ -1785,6 +1804,65 @@ function addUNote(text){
   list.appendChild(row); autoResizeUnote(row.querySelector('textarea'));
   showToast('Note added','ok',1500);
 }
+/* ════ UNDERWRITING NOTES COPY ACTIONS ═══════════════ */
+function copyNotesOnly(){
+  const notes=getUNotes();
+  if(!notes.length){ showToast('No notes to copy','warn',2000); return; }
+  const out=notes.map(n=>`• ${n}`).join('\n');
+  navigator.clipboard.writeText(out)
+    .then(()=>showToast('Notes copied!','ok'))
+    .catch(()=>showToast('Copy failed','err'));
+}
+
+function copyForExcel(){
+  // Tab-separated: paste directly into Excel columns
+  // Row per item: Type | Form Number | Form Name | Note/Comment
+  const unotes=getUNotes();
+  const dk=Object.keys(discrepancies);
+  const c2=lastResult.c2||[], c3=lastResult.c3||[];
+  const rows=[];
+
+  // Header row
+  rows.push(['Type','Form Number','Form Name','Comment'].join('\t'));
+
+  // Underwriting notes — each note is its own row in col A
+  unotes.forEach(n=>{ rows.push(['Underwriting Note','','',n].join('\t')); });
+
+  // UW-choice forms not auto-selected in PUMAA
+  c2.forEach((item,i)=>{
+    const note=notes['s2_'+i]||'';
+    rows.push(['UW Choice Form',item.num,item.desc||item.num,note].join('\t'));
+  });
+
+  // Forms in policy not found in PUMAA
+  const flaggedC3=new Set(dk.filter(k=>discrepancies[k].srcKey==='c3').map(k=>norm(discrepancies[k].num)));
+  c3.filter(item=>!flaggedC3.has(norm(item.num))).forEach((item,i)=>{
+    const note=notes['s3_'+i]||'';
+    rows.push(['Not in PUMAA',item.num,item.desc||item.policyDesc||item.num,note].join('\t'));
+  });
+
+  // Flagged discrepancies
+  dk.forEach(k=>{
+    const d=discrepancies[k];
+    rows.push(['Discrepancy',d.num,d.name||'',d.note||''].join('\t'));
+  });
+
+  // Auto-detected conflicts
+  autoDiscs.forEach(d=>{
+    if(d.type==='name-match'){
+      const pNum=d.policyForm.policyRaw||d.policyForm.num;
+      rows.push(['Auto-Conflict',d.pumaaForm.num,d.pumaaForm.desc,`Policy uses "${pNum}" — same form, different number`].join('\t'));
+    } else {
+      rows.push(['Name Mismatch',d.form.num,d.pumaaName,`Policy name: "${d.policyName}"`].join('\t'));
+    }
+  });
+
+  if(rows.length<=1){ showToast('Nothing to copy for Excel','warn',2000); return; }
+  navigator.clipboard.writeText(rows.join('\n'))
+    .then(()=>showToast(`Excel data copied — ${rows.length-1} rows ready to paste`,'ok'))
+    .catch(()=>showToast('Copy failed','err'));
+}
+  
 function addUNoteCustom(){
   const inp=document.getElementById('unotesCustomInp'); const val=inp.value.trim();
   if(!val){ showToast('Type a note first','warn',2000); return; }
