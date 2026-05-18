@@ -390,12 +390,18 @@ textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba
 .ideas-body{padding:1.25rem 1.5rem;display:none}
 .ideas-body.open{display:block}
 .ideas-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ideas-section-label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;padding-left:2px}
+.ideas-meta{font-size:11px;color:var(--text3);margin-left:10px}
 .idea-card{background:rgba(129,140,248,.04);border:1px solid rgba(129,140,248,.1);border-radius:10px;padding:12px 14px}
+.idea-built{border-color:rgba(52,211,153,.2)!important;background:rgba(52,211,153,.04)!important}
+.idea-game{border-top:2px solid #7c3aed;background:rgba(167,139,250,.03)!important}
 .idea-tag{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:6px}
 .tag-feature{background:rgba(52,211,153,.1);color:var(--green)}
 .tag-ux{background:rgba(129,140,248,.13);color:var(--indigo)}
 .tag-data{background:rgba(251,191,36,.1);color:var(--amber)}
 .tag-smart{background:rgba(45,212,191,.1);color:var(--teal)}
+.tag-industry{background:rgba(99,102,241,.12);color:var(--indigo2)}
+.tag-vision{background:rgba(167,139,250,.12);color:#a78bfa}
 .idea-card:hover{border-color:rgba(129,140,248,.25);background:rgba(129,140,248,.06);transition:all .2s}
 .tag-done{background:rgba(52,211,153,.15);color:var(--green);opacity:.8}
 .idea-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
@@ -1007,81 +1013,148 @@ body.theme-dark{
   </div>
 
   <!-- IDEAS PANEL -->
-  <div class="ideas-panel no-print" style="margin-top:2.5rem">
+<div class="ideas-panel no-print" style="margin-top:2.5rem">
     <div class="ideas-hd" onclick="toggleIdeas()">
       <div class="ideas-hd-icon">💡</div>
       <span class="ideas-hd-title">Roadmap &amp; Improvement Ideas</span>
+      <span class="ideas-meta">v1.0 · 13 shipped · 7 planned</span>
       <span class="sarr" id="ideasArr">▶</span>
     </div>
     <div class="ideas-body" id="ideasBody">
+      <div class="ideas-section-label">✓ Shipped in v1.0</div>
       <div class="ideas-grid">
-        <!-- BUILT highlight row -->
-        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">PUMAA Live-Page Bookmarklet</div>
+          <div class="idea-desc">One-click bookmark saves the PUMAA Endorsements page with all Angular checkbox states intact — quote number and insured name auto-included in the filename.</div>
+        </div>
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Checkbox-Aware Parser</div>
+          <div class="idea-desc">Detects whether the PUMAA file was saved with the fixed bookmarklet. Only checked forms are loaded. Unchecked forms are kept separately for the "Available — Not Selected" category.</div>
+        </div>
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">5-Category Comparison Engine</div>
+          <div class="idea-desc">Confirmed (System + UW Choice merged), Not in PUMAA, Not in Policy, and Available — Not Selected. Each category is colour-coded with per-row source badges.</div>
+        </div>
+        <div class="idea-card idea-built">
           <span class="idea-tag tag-done">✓ Built</span>
           <div class="idea-title">Policy PDF Direct Upload</div>
-          <div class="idea-desc">Upload the policy PDF — only the Forms &amp; Endorsements block is extracted automatically.</div>
+          <div class="idea-desc">Upload the carrier policy PDF — only the Forms &amp; Endorsements block is extracted automatically using PDF.js. Editable before running.</div>
         </div>
-        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Auto-Detected Conflicts Panel</div>
+          <div class="idea-desc">Same form name, different number (≥88% similarity) and same number, different name (&lt;45% similarity) are detected automatically. Forms pulled from sections until resolved. Source badges show ✓ System, ⚠ UW Choice, In Policy — Not in PUMAA per card.</div>
+        </div>
+        <div class="idea-card idea-built">
           <span class="idea-tag tag-done">✓ Built</span>
           <div class="idea-title">Year-Aware Fuzzy Matching</div>
-          <div class="idea-desc">Near-matches across year versions (2024 vs 2025) detected automatically with one-click Accept.</div>
+          <div class="idea-desc">Near-matches across year versions (2024 vs 2025) detected with confidence scoring. One-click Accept reclassifies the form. Already-matched forms are excluded from suggestions.</div>
         </div>
-        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Discrepancy Panel with Undo</div>
+          <div class="idea-desc">Flag any form row to move it to the Discrepancy panel. ↩ Return to section button fully restores the row to its original section.</div>
+        </div>
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Form Description Normaliser</div>
+          <div class="idea-desc">Pairwise Jaccard similarity on all policy form names. Surfaces Possible Duplicates (≥90%), Possible Conflicts (75–89%), and Similar forms (58–74%). PUMAA-only forms excluded.</div>
+        </div>
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Underwriting Notes + Shared Templates</div>
+          <div class="idea-desc">Session-level notes with 8 standard templates. Templates are shared across all users via JSONBin — add or edit freely, delete requires admin PIN. Notes appear in all exports.</div>
+        </div>
+        <div class="idea-card idea-built">
           <span class="idea-tag tag-done">✓ Built</span>
           <div class="idea-title">Side-by-Side View</div>
           <div class="idea-desc">Toggle ⇄ to see PUMAA and policy forms in two panels with colour-coded match indicators.</div>
         </div>
-        <div class="idea-card" style="border-color:rgba(52,211,153,.25);background:rgba(52,211,153,.04)">
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Multi-Format Exports</div>
+          <div class="idea-desc">Copy Full Report, Copy Formatted List, Copy for Excel (tab-separated), Download CSV (quote-named), and Print / PDF — all include underwriting notes and discrepancies.</div>
+        </div>
+        <div class="idea-card idea-built">
           <span class="idea-tag tag-done">✓ Built</span>
           <div class="idea-title">Auto-Suggest Discrepancy Notes</div>
-          <div class="idea-desc">Flagging a format-mismatch row pre-fills the discrepancy note with exact PUMAA vs Policy formats.</div>
+          <div class="idea-desc">Flagging a format-mismatch row pre-fills the discrepancy note with exact PUMAA vs Policy notation details.</div>
         </div>
-
-        <!-- NEW GAME-CHANGING IDEAS -->
+        <div class="idea-card idea-built">
+          <span class="idea-tag tag-done">✓ Built</span>
+          <div class="idea-title">Light / Dark / Dim Themes</div>
+          <div class="idea-desc">Type LIGHT, DARK, or DIM outside any input to switch theme. Default is DARK. Full light mode with enhanced colours throughout.</div>
+        </div>
+      </div>
+ 
+      <div class="ideas-section-label" style="margin-top:2rem">🔜 Next Up</div>
+      <div class="ideas-grid">
         <div class="idea-card">
-          <span class="idea-tag tag-smart">🧠 AI</span>
+          <span class="idea-tag tag-feature">🔄 Workflow</span>
           <div class="idea-title">Smart Form Validation Engine</div>
-          <div class="idea-desc">Cross-check form combinations for known conflicts (e.g. two mutually exclusive exclusions on the same policy). Flag illogical pairings before binding — catches underwriting errors no one else catches.</div>
+          <div class="idea-desc">Rule-based cross-checks for known form conflicts — mutually exclusive exclusions, missing companion forms by state and policy type. Catch underwriting errors before binding.</div>
         </div>
         <div class="idea-card">
           <span class="idea-tag tag-feature">🔄 Workflow</span>
           <div class="idea-title">Policy Version Diff</div>
-          <div class="idea-desc">Upload two policy PDFs (renewal vs prior year) and instantly see which forms were added, removed, or changed — a full line-by-line endorsement diff that takes seconds instead of 30 minutes.</div>
-        </div>
-        <div class="idea-card">
-          <span class="idea-tag tag-data">📊 Data</span>
-          <div class="idea-title">Required Forms Rule Engine</div>
-          <div class="idea-desc">Define rules per state and policy type: "HO3 in Massachusetts must always include HO 01 20." Automatically alerts if a mandatory form is missing from the policy. Eliminates E&amp;O exposure.</div>
-        </div>
-        <div class="idea-card">
-          <span class="idea-tag tag-smart">⚡ Speed</span>
-          <div class="idea-title">Batch Policy Processing</div>
-          <div class="idea-desc">Upload 10 policy PDFs at once against a single PUMAA page. Get a summary table showing all missing and extra forms across all policies — one click to review the whole book.</div>
-        </div>
-        <div class="idea-card">
-          <span class="idea-tag tag-ux">🔗 Share</span>
-          <div class="idea-title">One-Click Shareable Report</div>
-          <div class="idea-desc">Generate a self-contained HTML snapshot that preserves all results, notes, flags and discrepancies. Share via email or link — the recipient sees everything exactly as you left it, no files needed.</div>
+          <div class="idea-desc">Upload two policy PDFs (renewal vs prior year) and instantly see which forms were added, removed, or changed — a full endorsement diff in seconds instead of 30 minutes.</div>
         </div>
         <div class="idea-card">
           <span class="idea-tag tag-feature">🕐 History</span>
           <div class="idea-title">Comparison History &amp; Audit Log</div>
-          <div class="idea-desc">Auto-save every comparison to browser storage with timestamp and policy number. Reopen any past review, see what was flagged, what notes were added — full audit trail for compliance and E&amp;O defence.</div>
-        </div>
-        <div class="idea-card">
-          <span class="idea-tag tag-smart">🏷 Smart</span>
-          <div class="idea-title">Form Description Normaliser</div>
-          <div class="idea-desc">When "Sanctions Suspension Clause" and "Sanctions Limitation Clause" appear on the same policy, detect that they may be duplicates or conflicting and flag for UW review. Stop silently passing bad policies.</div>
+          <div class="idea-desc">Auto-save every comparison with timestamp and policy number. Reopen any past review — full audit trail for compliance and E&amp;O defence.</div>
         </div>
         <div class="idea-card">
           <span class="idea-tag tag-data">📋 Export</span>
           <div class="idea-title">RISCO Email Draft Generator</div>
-          <div class="idea-desc">After comparison, generate a ready-to-send email to the retail agent listing missing forms, discrepancies and required follow-up — formatted, professional, copy-paste ready in one click.</div>
+          <div class="idea-desc">After comparison, generate a ready-to-send email to the retail agent listing missing forms, discrepancies, and required follow-up — formatted and copy-paste ready in one click.</div>
+        </div>
+      </div>
+ 
+      <div class="ideas-section-label" style="margin-top:2rem">🚀 Game-Changing</div>
+      <div class="ideas-grid">
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-industry">🚀 Industry</span>
+          <div class="idea-title">Required Forms Rule Engine</div>
+          <div class="idea-desc">Define rules per state and policy type: "HO3 in Massachusetts must always include HO 01 20." Auto-alert if a mandatory form is missing. Eliminates E&amp;O exposure on compliance-critical lines.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-industry">🚀 Industry</span>
+          <div class="idea-title">Batch Policy Processing</div>
+          <div class="idea-desc">Upload 10 policy PDFs at once against a single PUMAA page. Get a summary table of all missing and extra forms across all policies — review the entire renewal book in one session.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-industry">🚀 Industry</span>
+          <div class="idea-title">Live Carrier Form Library Sync</div>
+          <div class="idea-desc">Sync directly with ISO, AAIS, or carrier form libraries. Know immediately when a form edition changes — no more manually tracking which year edition is current.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-vision">🔭 Vision</span>
+          <div class="idea-title">One-Click Shareable Report</div>
+          <div class="idea-desc">Generate a self-contained HTML snapshot preserving all results, notes, flags, and discrepancies. Share via email — the recipient sees everything exactly as you left it, no login needed.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-vision">🔭 Vision</span>
+          <div class="idea-title">Regulatory Change Alerting</div>
+          <div class="idea-desc">Subscribe to ISO/AAIS filing feeds. Get notified when a form used in your active book is amended, withdrawn, or superseded — before the next renewal catches you off guard.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-vision">🔭 Vision</span>
+          <div class="idea-title">FormSync API for MGA / PAS Integration</div>
+          <div class="idea-desc">Expose comparison logic as a REST API. Any policy admin system can call FormSync at bind time and get a structured JSON diff of PUMAA vs policy forms — automated quality gate before every issuance.</div>
+        </div>
+        <div class="idea-card idea-game">
+          <span class="idea-tag tag-vision">🔭 Vision</span>
+          <div class="idea-title">Cross-Broker Benchmarking</div>
+          <div class="idea-desc">Anonymised aggregate data across the book — which forms are most commonly missing, which discrepancy types appear most often, which carriers have the most notation differences. Market intelligence from your own data.</div>
         </div>
       </div>
     </div>
   </div>
-
+ 
 </div><!-- /.app -->
 
 <div class="cheat-hud" id="cheatHud"></div>
