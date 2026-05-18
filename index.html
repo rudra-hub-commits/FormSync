@@ -868,7 +868,7 @@ body.theme-dark{
       <span class="bm-icon">💡</span>
       <span class="bm-text">Ctrl+S doesn't capture checked checkboxes. Use the bookmarklet below to save the live page with all selections intact:</span>
       <a class="bm-link" href="javascript:(function(){document.querySelectorAll('input[type=&quot;checkbox&quot;]').forEach(function(cb){if(cb.checked)cb.setAttribute('checked','checked');else cb.removeAttribute('checked');});var ft=document.querySelector('.flowtab');var q=(ft?ft.childNodes[0].textContent:'').trim().replace(/[^a-zA-Z0-9]/g,'_');var ins=(ft?ft.querySelector('.text').textContent:'').trim().replace(/[^a-zA-Z0-9 ]/g,'').replace(/\s+/g,'_');var fname=(q&&ins?q+'_'+ins:q||ins||'pumaa_endorsements')+'.html';var a=document.createElement('a');a.href='data:text/html;charset=utf-8,'+encodeURIComponent('<!DOCTYPE html>'+document.documentElement.outerHTML);a.download=fname;a.click();})();" onclick="event.preventDefault();navigator.clipboard.writeText(this.href).then(()=>showToast('Bookmarklet copied — paste into a bookmark URL field','ok',3500));" title="Drag this to your bookmarks bar, OR click to copy the bookmarklet code">📌 Save PUMAA Live Page</a>
-      <span class="bm-hint">Drag to bookmarks bar. On the PUMAA page, click it — downloads as RISCO0085938_Edmund_Erin_Pacheco.html with all checkboxes captured.</span>
+      <span class="bm-hint"> Drag to bookmarks bar. On the PUMAA page, click it — downloads as [PolicyNumber]_[InsureName].html with all checkboxes captured.</span>
     </div>
     <div id="alert1" class="alert-box">⚠️ No forms found. Make sure you saved the correct PUMAA page (Endorsements step).</div>
     <div id="parseBadges" class="pbadges" style="display:none"></div>
