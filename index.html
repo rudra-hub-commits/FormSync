@@ -961,9 +961,9 @@ body.theme-dark{
   <!-- UNDERWRITING NOTES CARD -->
   <div class="unotes-card no-print" id="unotesCard">
     <div class="unotes-header">
-      <div class="unotes-title">📝 Comments</div>
+      <div class="unotes-title">📝 Underwriting Notes</div>
       <div class="unotes-copy-row">
-        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Comments</button>
+        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Notes</button>
         <button class="unotes-copy-btn" onclick="copyFormattedList()" title="Copy everything">📄 Copy All</button>
         <button class="unotes-copy-btn unotes-copy-excel" onclick="copyForExcel()" title="Copy tab-separated for Excel">📊 Copy for Excel</button>
       </div>
@@ -1277,10 +1277,10 @@ let uNoteCounter  = 0;
    Delete requires admin PIN.
    ▸ Replace JSONBIN_ID + JSONBIN_KEY with your own values before pushing to Git.
 ════════════════════════════════════════════════ */
-const JSONBIN_ID  = '6a071916c0954111d829ab9f';         // e.g. '6638a2f2acd3cb34a83e5c91'
+ JSONBIN_ID  = '6a071916c0954111d829ab9f';         // e.g. '6638a2f2acd3cb34a83e5c91'
 const JSONBIN_KEY = '$2a$10$RIRnF.tGXmxm13.7TiQvQuVEnIQhiOOzq13CxVzUaiqCi1A/tAt/S';    // JSONBin.io Master Key
-const ADMIN_PIN   = '2000';                      // Change before pushing to Git
-
+const ADMIN_PIN   = '2000';   
+  
 const DEFAULT_CHIPS = [
   {id:'c1',label:'Hydrant Distance',    text:'Distance to Hydrant (in feet): Not answered in policy document — entered [X] ft.'},
   {id:'c2',label:'Fire Station Distance',text:'Distance to Fire Station (in miles): Not answered — entered [X] miles based on Google Maps ([Station Name])'},
@@ -1315,11 +1315,14 @@ async function loadChipsFromBin(){
     chipTemplates=data.chips;
     chipIdCounter=data.counter||chipTemplates.length+1;
   }
+  if(data&&data.exportFilter){
+    exportFilter={...exportFilter,...data.exportFilter};
+  }
   renderChips();
 }
 
 async function saveChipsToBin(){
-  await jbSave({chips:chipTemplates,counter:chipIdCounter});
+  await jbSave({chips:chipTemplates,counter:chipIdCounter,exportFilter});
 }
 
 
@@ -2032,8 +2035,27 @@ function renderAutoDiscSection(){
     body.appendChild(row);
   });
 }
+function getCollapsedState(){
+  const state={};
+  SEC_CONFIG.forEach(cfg=>{
+    const body=document.getElementById(cfg.sid+'_body');
+    if(body) state[cfg.sid]=body.style.display==='none';
+  });
+  return state;
+}
+function applyCollapsedState(state){
+  SEC_CONFIG.forEach(cfg=>{
+    const body=document.getElementById(cfg.sid+'_body');
+    const arr=document.getElementById(cfg.sid+'_arr');
+    if(!body) return;
+    const collapsed=state[cfg.sid]??cfg.collapsed;
+    body.style.display=collapsed?'none':'';
+    if(arr) arr.classList.toggle('open',!collapsed);
+  });
+}
 function adiscAccept(idx){
   const disc=autoDiscs[idx]; if(disc.type!=='name-match') return;
+  const saved=getCollapsedState();
   const isSys=!!pumaaData.sys.find(f=>norm(f.num)===norm(disc.pumaaForm.num));
   const merged={num:disc.pumaaForm.num,policyRaw:disc.policyForm.policyRaw||disc.policyForm.num,desc:disc.pumaaForm.desc,policyDesc:disc.policyForm.desc||disc.policyForm.policyDesc||'',src:isSys?'sys':'uw',_merged:true};
   if(isSys) lastResult.c1.push(merged); else lastResult.c2.push(merged);
@@ -2044,6 +2066,7 @@ function adiscAccept(idx){
   autoDiscs.splice(idx,1);
   renderStats(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
   renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
+  applyCollapsedState(saved);
   renderSBS(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
   renderAutoDiscSection();
   showToast(`Accepted: ${disc.pumaaForm.num} ↔ ${disc.policyForm.policyRaw||disc.policyForm.num}`,'ok');
@@ -2064,11 +2087,10 @@ function adiscFlag(idx){
 }
 function adiscDismiss(idx){
   const disc=autoDiscs[idx];
+  const saved=getCollapsedState();
   if(disc.type==='name-match'){
-    // Restore PUMAA form back to c4
     if(!lastResult.c4.find(f=>norm(f.num)===norm(disc.pumaaForm.num)))
       lastResult.c4.push(disc.pumaaForm);
-    // Restore policy form back to its original section
     const target=disc.policySection==='c1'?lastResult.c1:disc.policySection==='c2'?lastResult.c2:lastResult.c3;
     if(!target.find(f=>norm(f.num)===norm(disc.policyForm.num)))
       target.push(disc.policyForm);
@@ -2076,9 +2098,10 @@ function adiscDismiss(idx){
   autoDiscs.splice(idx,1);
   renderStats(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
   renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
+  applyCollapsedState(saved);
   renderSBS(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
   renderAutoDiscSection();
-  showToast('Dismissed — forms restored to original sections','info',2500);
+  showToast('Dismissed — forms restored','info',2000);
 }
 
 /* ════ CHIP MANAGEMENT ═══════════════════════ */
@@ -2342,7 +2365,8 @@ function closeExportModal(){
 function saveExportFilter(){
   exportFilter={...exportFilterPending};
   closeExportModal();
-  showToast('Export filter saved','ok',2000);
+  saveChipsToBin();
+  showToast('Export filter saved for everyone','ok',2000);
 }
 
 /* ════ COPY ACTIONS ══════════════════════════ */
@@ -2486,7 +2510,33 @@ function runComparison(){
     ...(pumaaData.sysUnchecked||[]).map(f=>({...f,uncheckedSrc:'sys'})),
     ...(pumaaData.uwUnchecked||[]).map(f=>({...f,uncheckedSrc:'uw'}))
   ];
-  const c5=unchecked.filter(f=>pn.has(norm(f.num)));
+  const matchedNums=new Set([...c1,...c2].map(f=>norm(f.num)));
+  const c5Raw=unchecked.filter(f=>pn.has(norm(f.num))&&!matchedNums.has(norm(f.num)));
+  const c5RawNums=new Set(c5Raw.map(f=>norm(f.num)));
+
+  // Pull c3 forms into c5 if they match an unchecked PUMAA form by number OR fuzzy name
+  const c3Promoted=[];
+  const c3Final=c3.filter(item=>{
+    const numMatch=unchecked.find(u=>norm(u.num)===norm(item.num));
+    if(numMatch&&!c5RawNums.has(norm(numMatch.num))){
+      c3Promoted.push({...numMatch,policyDesc:item.policyDesc||'',policyRaw:item.policyRaw||item.num,_promotedFrom:'c3'});
+      c5RawNums.add(norm(numMatch.num)); return false;
+    }
+    const iName=item.policyDesc||item.desc||'';
+    if(iName.length>4){
+      const nameMatch=unchecked.find(u=>{
+        if(!u.desc||u.desc.length<4) return false;
+        return jacc(norm(iName),norm(u.desc))>=0.58;
+      });
+      if(nameMatch&&!c5RawNums.has(norm(nameMatch.num))&&!matchedNums.has(norm(nameMatch.num))){
+        c3Promoted.push({...nameMatch,policyDesc:item.policyDesc||'',policyRaw:item.policyRaw||item.num,_promotedFrom:'c3'});
+        c5RawNums.add(norm(nameMatch.num)); return false;
+      }
+    }
+    return true;
+  });
+  const c5=[...c5Raw,...c3Promoted.filter(p=>!c5Raw.find(f=>norm(f.num)===norm(p.num)))];
+  const c3=c3Final;
 
   lastResult={c1,c2,c3,c4,c5}; notes={}; discrepancies={};
   autoDiscs=detectAutoDiscrepancies(c1,c2,c3,c4);
@@ -2772,7 +2822,9 @@ function setupFlag(row, item, cfg, dk, fmtDiff, pumaaNum, policyNum, wrapper){
   // AUTO-SUGGEST: pre-fill note for format mismatches in c1/c2
   const autoNote = fmtDiff
     ? `Policy format: "${policyNum}" — PUMAA format: "${pumaaNum}" — same form, different notation`
-    : '';
+    : cfg.key==='c3'
+      ? `Form ${item.num}${(item.policyDesc||item.desc)?' ('+( item.policyDesc||item.desc)+')':''} found in policy but has no match in PUMAA — verify manually or raise with carrier`
+      : '';
 
   row.querySelector('.flag-btn').addEventListener('click',function(){
     const already=this.classList.contains('flagged');
@@ -2950,24 +3002,25 @@ function copyFormattedList(){
   // Confirmed — system generated
   if(exportFilter.confirmed && c1.length){
     out+='\n• System generated forms — confirmed in policy\n';
-    c1.forEach((item,i)=>{ out+=`- (${item.num}) ${item.desc||item.num}${notes['s1_'+i]?' — '+notes['s1_'+i]:''}\n`; });
+    c1.forEach((item,i)=>{ const d=(item.desc||item.num).replace(/\s+/g,' ').trim(); out+=`- (${item.num.trim()}) ${d}${notes['s1_'+i]?' — '+notes['s1_'+i]:''}\n`; });
   }
   // Confirmed — UW choice
   if(exportFilter.confirmed && c2.length){
     out+='\n• Underwriter-selected forms — confirmed in policy\n';
-    c2.forEach((item,i)=>{ out+=`- (${item.num}) ${item.desc||item.num}${notes['s2_'+i]?' — '+notes['s2_'+i]:''}\n`; });
+    c2.forEach((item,i)=>{ const d=(item.desc||item.num).replace(/\s+/g,' ').trim(); out+=`- (${item.num.trim()}) ${d}${notes['s2_'+i]?' — '+notes['s2_'+i]:''}\n`; });
   }
   // c3 — in policy, not in PUMAA
   const c3clean=c3.filter(item=>!flaggedC3.has(norm(item.num)));
   if(exportFilter.c3 && c3clean.length){
     out+='\n• Forms present in policy — not found in PUMAA\n';
     c3clean.forEach(item=>{ const ri=c3.findIndex(x=>norm(x.num)===norm(item.num));
-      out+=`- (${item.num}) ${item.desc||item.policyDesc||item.num}${notes['s3_'+ri]?' — '+notes['s3_'+ri]:''}\n`; });
+      const d=(item.desc||item.policyDesc||item.num).replace(/\s+/g,' ').trim();
+      out+=`- (${item.num.trim()}) ${d}${notes['s3_'+ri]?' — '+notes['s3_'+ri]:''}\n`; });
   }
   // c5 — available in PUMAA not selected
   if(exportFilter.c5 && c5.length){
     out+='\n• Available in PUMAA (not selected) — present in policy\n';
-    c5.forEach((item,i)=>{ out+=`- (${item.num}) ${item.desc||item.num}${notes['s5_'+i]?' — '+notes['s5_'+i]:''}\n`; });
+    c5.forEach((item,i)=>{ const d=(item.desc||item.policyDesc||item.num).replace(/\s+/g,' ').trim(); out+=`- (${item.num.trim()}) ${d}${notes['s5_'+i]?' — '+notes['s5_'+i]:''}\n`; });
   }
   // Auto-detected conflicts
   if(exportFilter.autoconflicts){
@@ -3002,7 +3055,8 @@ function buildReport(){
     if(!items.length){ out+='  (none)\n'; return; }
     items.forEach((item,i)=>{
       const pf=item.policyRaw&&item.policyRaw!==item.num?` [Policy: ${item.policyRaw}]`:'';
-      out+=`  ${item.num.padEnd(30)} ${item.desc||item.policyDesc||'Unknown form'}${pf}\n`;
+      const cleanDesc=(item.desc||item.policyDesc||'Unknown form').replace(/\s+/g,' ').trim();
+      out+=`  ${item.num.trim().padEnd(30)} ${cleanDesc}${pf}\n`;
       if(notes[cfg.sid+'_'+i]) out+=`    ↳ NOTE: ${notes[cfg.sid+'_'+i]}\n`;
     });
   });
