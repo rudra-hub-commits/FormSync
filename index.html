@@ -961,9 +961,9 @@ body.theme-dark{
   <!-- UNDERWRITING NOTES CARD -->
   <div class="unotes-card no-print" id="unotesCard">
     <div class="unotes-header">
-      <div class="unotes-title">📝 Underwriting Notes</div>
+      <div class="unotes-title">📝 Comments</div>
       <div class="unotes-copy-row">
-        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Notes</button>
+        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Comments</button>
         <button class="unotes-copy-btn" onclick="copyFormattedList()" title="Copy everything">📄 Copy All</button>
         <button class="unotes-copy-btn unotes-copy-excel" onclick="copyForExcel()" title="Copy tab-separated for Excel">📊 Copy for Excel</button>
       </div>
@@ -1277,9 +1277,9 @@ let uNoteCounter  = 0;
    Delete requires admin PIN.
    ▸ Replace JSONBIN_ID + JSONBIN_KEY with your own values before pushing to Git.
 ════════════════════════════════════════════════ */
-const JSONBIN_ID  = 'YOUR_BIN_ID_HERE';         // e.g. '6638a2f2acd3cb34a83e5c91'
-const JSONBIN_KEY = '$2a$10$YOUR_MASTER_KEY';    // JSONBin.io Master Key
-const ADMIN_PIN   = '1234';                      // Change before pushing to Git
+const JSONBIN_ID  = '6a071916c0954111d829ab9f';         // e.g. '6638a2f2acd3cb34a83e5c91'
+const JSONBIN_KEY = '$2a$10$RIRnF.tGXmxm13.7TiQvQuVEnIQhiOOzq13CxVzUaiqCi1A/tAt/S';    // JSONBin.io Master Key
+const ADMIN_PIN   = '2000';                      // Change before pushing to Git
 
 const DEFAULT_CHIPS = [
   {id:'c1',label:'Hydrant Distance',    text:'Distance to Hydrant (in feet): Not answered in policy document — entered [X] ft.'},
