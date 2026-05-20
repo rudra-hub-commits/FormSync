@@ -628,7 +628,6 @@ textarea:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 4px rgba
 .origin-tag{display:inline-flex;align-items:center;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:7px;vertical-align:middle;letter-spacing:.03em;white-space:nowrap}
 .origin-sys{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.25)}
 .origin-uw{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.25)}
-.f-name{font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);opacity:.65;margin-left:5px;font-style:normal;font-family:'JetBrains Mono',monospace}
 .f-name-none{font-size:11.5px;color:var(--text3);font-weight:400;font-style:italic}
 /* print */
 @media print{.no-print{display:none!important}body,html{background:#fff!important;color:#000!important}}
@@ -681,7 +680,7 @@ body.theme-light{
 }
 body.theme-light::before,body.theme-light::after{display:none}
 body.theme-light .hdr{background:#fff;border-color:#d1d9e6;box-shadow:0 2px 12px rgba(15,23,42,.1)}
-body.theme-light .hdr-text h1{background:linear-gradient(135deg,#0f172a,#4f46e5);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+body.theme-light .hdr-text h1{background:linear-gradient(135deg,#0f172a,#4f46e5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 body.theme-light .hdr-text p,body.theme-light .hdr-clock{color:#64748b}
 body.theme-light .ver-tag{background:#eff6ff;color:#4f46e5;border-color:#bfdbfe}
 body.theme-light .scirc{background:#fff;border-color:#b8c4d8;color:#64748b}
@@ -961,9 +960,9 @@ body.theme-dark{
   <!-- UNDERWRITING NOTES CARD -->
   <div class="unotes-card no-print" id="unotesCard">
     <div class="unotes-header">
-      <div class="unotes-title">📝 Comments</div>
+      <div class="unotes-title">📝 Underwriting Notes</div>
       <div class="unotes-copy-row">
-        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Comments</button>
+        <button class="unotes-copy-btn" onclick="copyNotesOnly()" title="Copy only the underwriting notes">📋 Copy Notes</button>
         <button class="unotes-copy-btn" onclick="copyFormattedList()" title="Copy everything">📄 Copy All</button>
         <button class="unotes-copy-btn unotes-copy-excel" onclick="copyForExcel()" title="Copy tab-separated for Excel">📊 Copy for Excel</button>
       </div>
@@ -1277,9 +1276,9 @@ let uNoteCounter  = 0;
    Delete requires admin PIN.
    ▸ Replace JSONBIN_ID + JSONBIN_KEY with your own values before pushing to Git.
 ════════════════════════════════════════════════ */
- JSONBIN_ID  = '6a071916c0954111d829ab9f';         // e.g. '6638a2f2acd3cb34a83e5c91'
+const JSONBIN_ID  = '6a071916c0954111d829ab9f';         // e.g. '6638a2f2acd3cb34a83e5c91'
 const JSONBIN_KEY = '$2a$10$RIRnF.tGXmxm13.7TiQvQuVEnIQhiOOzq13CxVzUaiqCi1A/tAt/S';    // JSONBin.io Master Key
-const ADMIN_PIN   = '2000';                     // Change before pushing to Git
+const ADMIN_PIN   = '2000';                     // Change before pushing to Git                   // Change before pushing to Git
 
 const DEFAULT_CHIPS = [
   {id:'c1',label:'Hydrant Distance',    text:'Distance to Hydrant (in feet): Not answered in policy document — entered [X] ft.'},
@@ -2511,24 +2510,31 @@ function runComparison(){
     ...(pumaaData.uwUnchecked||[]).map(f=>({...f,uncheckedSrc:'uw'}))
   ];
   const matchedNums=new Set([...c1,...c2].map(f=>norm(f.num)));
-  const c5Raw=unchecked.filter(f=>pn.has(norm(f.num))&&!matchedNums.has(norm(f.num)));
+  const c5Raw=unchecked.filter(f=>pn.has(norm(f.num))&&!matchedNums.has(norm(f.num))).map(f=>{
+    const c3match=c3.find(c=>norm(c.num)===norm(f.num));
+    return c3match ? {...f,policyDesc:c3match.policyDesc||'',policyRaw:c3match.policyRaw||f.num} : f;
+  });
   const c5RawNums=new Set(c5Raw.map(f=>norm(f.num)));
 
   // Pull c3 forms into c5 if they match an unchecked PUMAA form by number OR fuzzy name
   const c3Promoted=[];
   const c3Final=c3.filter(item=>{
+    // Already in c5 by exact number — just remove from c3, no need to re-add to c5
+    if(c5RawNums.has(norm(item.num))) return false;
+    // Number match against unchecked that isn't yet in c5
     const numMatch=unchecked.find(u=>norm(u.num)===norm(item.num));
-    if(numMatch&&!c5RawNums.has(norm(numMatch.num))){
+    if(numMatch){
       c3Promoted.push({...numMatch,policyDesc:item.policyDesc||'',policyRaw:item.policyRaw||item.num,_promotedFrom:'c3'});
       c5RawNums.add(norm(numMatch.num)); return false;
     }
+    // Fuzzy name match against unchecked
     const iName=item.policyDesc||item.desc||'';
     if(iName.length>4){
       const nameMatch=unchecked.find(u=>{
-        if(!u.desc||u.desc.length<4) return false;
+        if(!u.desc||u.desc.length<4||c5RawNums.has(norm(u.num))) return false;
         return jacc(norm(iName),norm(u.desc))>=0.58;
       });
-      if(nameMatch&&!c5RawNums.has(norm(nameMatch.num))&&!matchedNums.has(norm(nameMatch.num))){
+      if(nameMatch&&!matchedNums.has(norm(nameMatch.num))){
         c3Promoted.push({...nameMatch,policyDesc:item.policyDesc||'',policyRaw:item.policyRaw||item.num,_promotedFrom:'c3'});
         c5RawNums.add(norm(nameMatch.num)); return false;
       }
@@ -2567,10 +2573,10 @@ function renderStats(c1,c2,c3,c4,c5){
   c5=c5||[];
   const confirmed=(c1.length)+(c2.length);
   document.getElementById('statsRow').innerHTML=[
-    {n:confirmed, l:'Confirmed in Policy',               nc:'cg',card:'sg'},
-    {n:c3.length, l:'Not in PUMAA — Review',             nc:'cr',card:'nr'},
-    {n:c4.length, l:'PUMAA System — Not in Policy',      nc:'ct',card:'po'},
-    {n:c5.length, l:'Available in PUMAA — Not Selected', nc:'cv',card:'ua'},
+    {n:confirmed,                l:'Confirmed in Policy',               nc:'cg',card:'sg'},
+    {n:c5.length,                l:'Available in PUMAA — Not Selected', nc:'cv',card:'ua'},
+    {n:c3.length,                l:'Not in PUMAA — Review',             nc:'cr',card:'nr'},
+    {n:c4.length,                l:'PUMAA System — Not in Policy',      nc:'ct',card:'po'},
   ].map(x=>`<div class="stat ${x.card}"><div class="stat-n ${x.nc}">${x.n}</div><div class="stat-l">${x.l}</div></div>`).join('');
 }
 
@@ -2624,9 +2630,9 @@ function renderSBS(c1,c2,c3,c4){
 ════════════════════════════════════════════════ */
 const SEC_CONFIG=[
   {key:'c1c2',sid:'s1',rowCls:'fr-sg',iconBg:'rgba(52,211,153,.12)',iconClr:'#34d399',icon:'✓',pill:'p-g',title:'Confirmed in Policy',sub:'Forms matched in policy — System Generated and UW Choice. No action needed.',collapsed:false},
-  {key:'c3',sid:'s3',rowCls:'fr-nr',iconBg:'rgba(248,113,113,.12)',iconClr:'#f87171',icon:'✕',pill:'p-r',title:'In Policy — NOT Found in PUMAA',sub:'Not in PUMAA. Add notes or flag near-matches.',collapsed:false},
-  {key:'c4',sid:'s4',rowCls:'fr-po',iconBg:'rgba(45,212,191,.12)',iconClr:'#2dd4bf',icon:'○',pill:'p-t',title:'In PUMAA (System Generated) — Not in Policy',sub:'System forms absent from policy.',collapsed:true},
   {key:'c5',sid:'s5',rowCls:'fr-ua',iconBg:'rgba(167,139,250,.12)',iconClr:'#a78bfa',icon:'◈',pill:'p-v',title:'In Policy — Available in PUMAA (Not Selected)',sub:'Policy has this form but it was not checked in PUMAA. Review and select manually if required.',collapsed:false},
+  {key:'c3',sid:'s3',rowCls:'fr-nr',iconBg:'rgba(248,113,113,.12)',iconClr:'#f87171',icon:'✕',pill:'p-r',title:'In Policy — NOT Found in PUMAA',sub:'Not in PUMAA at all. Add notes or flag near-matches.',collapsed:false},
+  {key:'c4',sid:'s4',rowCls:'fr-po',iconBg:'rgba(45,212,191,.12)',iconClr:'#2dd4bf',icon:'○',pill:'p-t',title:'In PUMAA (System Generated) — Not in Policy',sub:'System forms absent from policy.',collapsed:true},
 ];
 
 function renderSections(c1,c2,c3,c4,c5){
@@ -3050,7 +3056,7 @@ function buildReport(){
     const filterKey=cfg.key==='c1c2'?'confirmed':cfg.key;
     if(!exportFilter[filterKey]) return;
     const items=cfg.key==='c1c2'?[...(lastResult.c1||[]),...(lastResult.c2||[])]:(lastResult[cfg.key]||[]);
-    const icons=['✓','✕','○','◈'];
+    const icons=['✓','◈','✕','○'];
     out+=`\n[${icons[si]||'•'}] ${cfg.title.toUpperCase()} (${items.length})\n${'─'.repeat(45)}\n`;
     if(!items.length){ out+='  (none)\n'; return; }
     items.forEach((item,i)=>{
