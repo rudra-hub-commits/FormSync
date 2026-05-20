@@ -1817,7 +1817,23 @@ function extractPolicyForms(raw){
   const sysMap={}, uwMap={};
   pumaaData.sys.forEach(f=> sysMap[norm(f.num)]=f);
   pumaaData.uw.forEach( f=> uwMap[ norm(f.num)]=f);
-  const found=[], seen=new Set();
+
+  // Year-tolerant maps: key = norm(stripYear(num)) → array of PUMAA forms sharing that base
+  // Allows policy "RSC PART END 05 2025 CYBER" to match PUMAA "RSC PART END 05 2026 CYBER"
+  const sysYearMap={}, uwYearMap={};
+  pumaaData.sys.forEach(f=>{ const kb=norm(stripYear(f.num)); if(kb.length>=4){ (sysYearMap[kb]=sysYearMap[kb]||[]).push(f); } });
+  pumaaData.uw.forEach( f=>{ const kb=norm(stripYear(f.num)); if(kb.length>=4){ (uwYearMap[kb]= uwYearMap[kb]||[]).push(f);  } });
+  // Helper: pick the candidate with the year closest to pYear (or first if no years)
+  function pickClosestYear(candidates, pYear){
+    if(!candidates||!candidates.length) return null;
+    if(!pYear||candidates.length===1) return candidates[0];
+    return candidates.reduce((best,f)=>{
+      const fy=extractYear(f.num)||0, by=extractYear(best.num)||0;
+      return Math.abs(fy-pYear)<Math.abs(by-pYear)?f:best;
+    });
+  }
+
+  const found=[], seen=new Set(), seenYearBase=new Set();
 
   // tryAdd(candidate, policyFormat)
   // candidate = what to look up (may be PUMAA canonical or policy raw)
@@ -1830,9 +1846,26 @@ function extractPolicyForms(raw){
     seen.add(k);
     const pRaw=(policyFmt||c).replace(/\s+/g,' ').trim();
     const pd=(policyDesc||'').replace(/\s+/g,' ').trim();
-    if(sysMap[k])            found.push({policyRaw:pRaw,num:sysMap[k].num,desc:sysMap[k].desc,policyDesc:pd,src:'sys'});
-    else if(uwMap[k])        found.push({policyRaw:pRaw,num:uwMap[k].num, desc:uwMap[k].desc, policyDesc:pd,src:'uw'});
-    else if(/[0-9]/.test(k)) found.push({policyRaw:pRaw,num:c,desc:'',policyDesc:pd,src:'unknown'});
+    const kBase=norm(stripYear(c));
+    if(sysMap[k]){
+      seenYearBase.add(kBase); // mark year-base as taken by this exact match
+      found.push({policyRaw:pRaw,num:sysMap[k].num,desc:sysMap[k].desc,policyDesc:pd,src:'sys'});
+    } else if(uwMap[k]){
+      seenYearBase.add(kBase);
+      found.push({policyRaw:pRaw,num:uwMap[k].num, desc:uwMap[k].desc, policyDesc:pd,src:'uw'});
+    } else if(kBase!==k && kBase.length>=4 && !seenYearBase.has(kBase)){
+      // Year-tolerant fallback: e.g. policy "...2025..." matches PUMAA "...2026..."
+      const pYear=extractYear(c);
+      const sysMatch=pickClosestYear(sysYearMap[kBase],pYear);
+      const uwMatch =!sysMatch&&pickClosestYear(uwYearMap[kBase],pYear);
+      if(sysMatch){
+        seenYearBase.add(kBase);
+        found.push({policyRaw:pRaw,num:sysMatch.num,desc:sysMatch.desc,policyDesc:pd,src:'sys',_yearVariant:true});
+      } else if(uwMatch){
+        seenYearBase.add(kBase);
+        found.push({policyRaw:pRaw,num:uwMatch.num,desc:uwMatch.desc,policyDesc:pd,src:'uw',_yearVariant:true});
+      } else if(/[0-9]/.test(k)) found.push({policyRaw:pRaw,num:c,desc:'',policyDesc:pd,src:'unknown'});
+    } else if(/[0-9]/.test(k)) found.push({policyRaw:pRaw,num:c,desc:'',policyDesc:pd,src:'unknown'});
   }
 
   // PASS 1
@@ -1991,7 +2024,10 @@ function detectAutoDiscrepancies(c1,c2,c3,c4){
   });
 
   // Type 2 — same number, name differs between PUMAA and policy document
+  // Skip _yearVariant forms: policyDesc is the extracted description line from policy text,
+  // which may differ from the PUMAA name for legitimate year-updated forms
   [...c1.map(f=>({...f,_src:'c1'})),...c2.map(f=>({...f,_src:'c2'}))].forEach(f=>{
+    if(f._yearVariant) return; // year-tolerant match — name diff is expected
     if(!f.policyDesc||f.policyDesc.length<5||!f.desc||f.desc.length<5) return;
     const sim=jacc(f.desc,f.policyDesc);
     if(sim<0.45) aDiscs.push({type:'name-mismatch',form:f,pumaaName:f.desc,policyName:f.policyDesc,policySection:f._src,score:Math.round(sim*100)});
@@ -2528,10 +2564,24 @@ function runComparison(){
       c5RawNums.add(norm(numMatch.num)); return false;
     }
     // Fuzzy name match against unchecked
+    // Guard: if this c3 form is a year-variant of something already in c1/c2, don't promote to c5
+    const c3ItemBase=norm(stripYear(item.num));
+    if(c3ItemBase!==norm(item.num) && c3ItemBase.length>=4){
+      const alreadyConfirmed=[...c1,...c2].some(f=>norm(stripYear(f.num))===c3ItemBase);
+      if(alreadyConfirmed) return true; // keep in c3 with year-diff badge, not in c5
+    }
     const iName=item.policyDesc||item.desc||'';
     if(iName.length>4){
       const nameMatch=unchecked.find(u=>{
         if(!u.desc||u.desc.length<4||c5RawNums.has(norm(u.num))) return false;
+        // Extra guard: if BOTH forms carry explicit year tokens, their year-stripped bases
+        // must match — prevents cross-form false matches like CYBER policy → EQB BUL unchecked
+        const cHasYear=!!extractYear(item.num), uHasYear=!!extractYear(u.num);
+        if(cHasYear && uHasYear){
+          const uBase=norm(stripYear(u.num));
+          const itemBase2=norm(stripYear(item.num));
+          if(uBase.length>=4 && itemBase2.length>=4 && uBase!==itemBase2) return false;
+        }
         return jacc(norm(iName),norm(u.desc))>=0.58;
       });
       if(nameMatch&&!matchedNums.has(norm(nameMatch.num))){
@@ -2738,8 +2788,29 @@ function buildSection(cfg,items){
           // Update pill count
           const pill=document.getElementById(cfg.sid+'_pill');
           if(pill) pill.textContent=Math.max(0,(parseInt(pill.textContent)||1)-1);
-          // Remove from lastResult so exports are accurate
-          lastResult[cfg.key]=lastResult[cfg.key].filter((_,j)=>j!==i);
+          // Remove from lastResult — c1c2 is a merged view; update underlying c1 or c2 by item origin
+          const dataKey=cfg.key==='c1c2'?(item._origin==='uw'?'c2':'c1'):cfg.key;
+          const arr=lastResult[dataKey];
+          if(arr){
+            const rmIdx=arr.findIndex(f=>norm(f.num)===norm(item.num));
+            if(rmIdx!==-1){
+              arr.splice(rmIdx,1);
+              // Shift note keys down so exports stay accurate
+              const sid2=cfg.key==='c1c2'?(item._origin==='uw'?'s2':'s1'):cfg.sid;
+              for(let j=rmIdx;j<arr.length+1;j++){
+                const prev=sid2+'_'+(j+1), curr=sid2+'_'+j;
+                if(notes[prev]!==undefined){ notes[curr]=notes[prev]; delete notes[prev]; }
+                else delete notes[curr];
+              }
+            }
+          }
+          // Also clear any associated discrepancy for this row
+          Object.keys(discrepancies).forEach(dk=>{
+            if(norm(discrepancies[dk].num)===norm(item.num)&&discrepancies[dk].srcKey===(cfg.key==='c1c2'?(item._origin==='uw'?'c2':'c1'):cfg.key)){
+              delete discrepancies[dk];
+            }
+          });
+          refreshDiscrepancySection();
         },250);
       });
 
@@ -2790,7 +2861,7 @@ function buildSection(cfg,items){
             else             lastResult.c2.push(moved);
             // Re-render everything
             renderStats(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
-            renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
+            renderSections(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4,lastResult.c5);
             renderSBS(lastResult.c1,lastResult.c2,lastResult.c3,lastResult.c4);
             showToast(`Accepted: ${item.num} → ${fz.form.num} (${pSrc==='sys'?'System Generated':'UW Choice'})`,'ok');
           });
